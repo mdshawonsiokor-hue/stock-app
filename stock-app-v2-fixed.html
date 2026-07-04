@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Smart Stock &amp; Sales Manager</title>
+<link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiU21hcnQgU3RvY2sgJiBTYWxlcyBNYW5hZ2VyIiwic3RhcnRfdXJsIjoiLiIsImRpc3BsYXkiOiJzdGFuZGFsb25lIn0=">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0F1417;
+  --panel:#161D22;
+  --panel-2:#1D262C;
+  --border:#2A343B;
+  --text:#EAF1F4;
+  --text-dim:#8FA0A8;
+  --text-faint:#5C6970;
+  --accent:#37D6C4;
+  --accent-dim:#1E5F58;
+  --warn:#F2B84B;
+  --sell:#FF6E63;
+  --sell-bg:#3A211F;
+  --return:#4ADE80;
+  --return-bg:#1B3327;
+  --danger:#FF5C5C;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'Inter',sans-serif;
+  min-height:100vh;
+  display:flex;
+  justify-content:center;
+  -webkit-tap-highlight-color:transparent;
+}
+.app{
+  width:100%;
+  max-width:480px;
+  min-height:100vh;
+  background:var(--bg);
+  display:flex;
+  flex-direction:column;
+  position:relative;
+}
+h1,h2,h3,.brand,.tabbar button,.section-title{font-family:'Sora',sans-serif;}
+.mono{font-family:'JetBrains Mono',monospace;}
+::selection{background:var(--accent);color:#00201C;}
+
+header.topbar{
+  background:var(--panel);
+  border-bottom:1px solid var(--border);
+  padding:16px 18px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  position:sticky; top:0; z-index:5;
+}
+.brand{font-size:17px;font-weight:700;letter-spacing:.2px;}
+.brand span{color:var(--accent);}
+.who{display:flex;align-items:center;gap:10px;}
+.who .name{font-size:12px;color:var(--text-dim);text-align:right;line-height:1.3;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.who .role-badge{
+  font-size:10px;text-transform:uppercase;letter-spacing:.5px;
+  color:var(--accent);border:1px solid var(--accent-dim);
+  padding:1px 6px;border-radius:20px;display:inline-block;margin-top:2px;
+}
+.logout-btn{
+  background:none;border:1px solid var(--border);color:var(--text-dim);
+  padding:6px 10px;border-radius:8px;font-size:12px;cursor:pointer;
+}
+.sync-dot{
+  width:7px;height:7px;border-radius:50%;background:var(--return);
+  display:inline-block;margin-right:5px;
+  box-shadow:0 0 0 0 rgba(74,222,128,.6);
+  animation:pulse 2.4s infinite;
+}
+.sync-dot.offline{background:var(--warn);animation:none;}
+@keyframes pulse{
+  0%{box-shadow:0 0 0 0 rgba(74,222,128,.5);}
+  70%{box-shadow:0 0 0 6px rgba(74,222,128,0);}
+  100%{box-shadow:0 0 0 0 rgba(74,222,128,0);}
+}
+.sync-row{font-size:10.5px;color:var(--text-faint);padding:6px 18px;background:var(--panel);border-bottom:1px solid var(--border);}
+
+.tabbar{
+  display:flex; background:var(--panel);
+  border-bottom:1px solid var(--border);
+  position:sticky; top:53px; z-index:4;
+  overflow-x:auto;
+}
+.tabbar button{
+  flex:1; background:none; border:none; color:var(--text-dim);
+  padding:12px 8px; font-size:12.5px; font-weight:600; cursor:pointer;
+  border-bottom:2px solid transparent; white-space:nowrap;
+}
+.tabbar button.active{ color:var(--accent); border-bottom-color:var(--accent); }
+
+main{ flex:1; padding:16px 16px 90px; }
+.hidden{display:none !important;}
+
+.section-title{
+  font-size:13px; font-weight:700; color:var(--text-dim);
+  text-transform:uppercase; letter-spacing:.6px;
+  margin:22px 0 10px; display:flex; align-items:center; gap:8px;
+}
+.section-title:first-child{margin-top:0;}
+.section-title::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--accent);}
+
+.card{
+  background:var(--panel); border:1px solid var(--border); border-radius:12px;
+  padding:14px;
+}
+.field{margin-bottom:12px;}
+.field label{display:block;font-size:12px;color:var(--text-dim);margin-bottom:6px;font-weight:600;}
+input[type=text],input[type=password],input[type=email],input[type=number],select,textarea{
+  width:100%; background:var(--panel-2); border:1px solid var(--border);
+  color:var(--text); border-radius:8px; padding:10px 12px; font-size:14.5px;
+  font-family:'Inter',sans-serif; outline:none;
+}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);}
+input::placeholder{color:var(--text-faint);}
+
+.btn{
+  border:none; border-radius:9px; padding:11px 16px; font-weight:700;
+  font-size:14px; cursor:pointer; font-family:'Sora',sans-serif;
+}
+.btn-primary{background:var(--accent); color:#04211D;}
+.btn-primary:active{opacity:.85;}
+.btn-block{width:100%;}
+.btn-outline{background:none;border:1px solid var(--border);color:var(--text);}
+.btn-danger{background:var(--danger);color:#2B0000;}
+.btn-danger-outline{background:none;border:1px solid var(--danger);color:var(--danger);}
+.btn-sm{padding:7px 12px;font-size:12.5px;border-radius:7px;}
+.btn:disabled{opacity:.4;cursor:not-allowed;}
+
+.error-box{
+  background:var(--sell-bg); color:var(--sell); border:1px solid #5A2E29;
+  padding:9px 12px; border-radius:8px; font-size:12.5px; margin-bottom:12px;
+}
+.info-box{
+  background:var(--panel-2); color:var(--text-dim); border:1px solid var(--border);
+  padding:9px 12px; border-radius:8px; font-size:12px; margin-bottom:12px; line-height:1.5;
+}
+
+.auth-screen{
+  flex:1; display:flex; flex-direction:column; justify-content:center;
+  padding:32px 26px; gap:18px;
+}
+.auth-hero{ text-align:center; margin-bottom:6px; }
+.auth-hero .mark{
+  width:56px;height:56px;border-radius:16px;margin:0 auto 14px;
+  background:linear-gradient(155deg,var(--accent),#1a8a7e);
+  display:flex;align-items:center;justify-content:center;
+  font-size:24px; box-shadow:0 8px 24px rgba(55,214,196,.25);
+}
+.auth-hero h1{font-size:20px;margin:0 0 4px;}
+.auth-hero p{font-size:12.5px;color:var(--text-dim);margin:0;}
+.auth-switch{text-align:center;font-size:12.5px;color:var(--text-dim);}
+.auth-switch a{color:var(--accent);cursor:pointer;font-weight:600;text-decoration:none;}
+
+.stock-row{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:12px 0; border-bottom:1px solid var(--border);
+  gap:10px;
+}
+.stock-row:last-child{border-bottom:none;}
+.stock-name{font-weight:600; font-size:14.5px;}
+.stock-meta{font-size:11px;color:var(--text-faint);margin-top:2px;}
+.stock-right{display:flex;align-items:center;gap:10px;}
+.qty-pill{
+  font-family:'JetBrains Mono',monospace; font-weight:700; font-size:15px;
+  padding:4px 10px; border-radius:20px; background:var(--panel-2);
+  border:1px solid var(--border); min-width:44px; text-align:center;
+}
+.qty-pill.low{ color:var(--warn); border-color:#5A4420; background:#2A2213; }
+.icon-btn{
+  background:none;border:1px solid var(--border);color:var(--text-dim);
+  width:28px;height:28px;border-radius:7px;cursor:pointer;font-size:13px;
+  display:flex;align-items:center;justify-content:center;
+}
+.icon-btn.danger{color:var(--danger);border-color:#5A2E29;}
+.empty{ font-size:12.5px; color:var(--text-faint); font-style:italic; padding:14px 0; text-align:center;}
+
+.mode-toggle{ display:flex; gap:8px; margin-bottom:18px; }
+.mode-opt{
+  flex:1; padding:12px 0; text-align:center; border-radius:10px;
+  border:1px solid var(--border); background:var(--panel); cursor:pointer;
+  font-weight:700; font-size:13.5px; color:var(--text-dim);
+}
+.mode-opt.sell.active{ background:var(--sell-bg); color:var(--sell); border-color:#5A2E29; }
+.mode-opt.return.active{ background:var(--return-bg); color:var(--return); border-color:#245C3E; }
+
+.line-item{
+  display:flex; align-items:center; gap:8px; background:var(--panel-2);
+  border:1px solid var(--border); border-radius:9px; padding:9px 10px; margin-bottom:8px;
+}
+.line-item .li-name{flex:1;font-size:13.5px;font-weight:600;}
+.line-item .li-unit{font-size:10.5px;color:var(--text-faint);}
+.picker-row{display:flex;gap:8px;margin-bottom:10px;}
+.picker-row select{flex:1;}
+
+.txn-card{
+  background:var(--panel); border:1px solid var(--border); border-radius:12px;
+  padding:14px; margin-bottom:12px;
+}
+.txn-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;}
+.txn-type{
+  font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.4px;
+  padding:3px 9px; border-radius:20px;
+}
+.txn-type.sell{background:var(--sell-bg);color:var(--sell);}
+.txn-type.return{background:var(--return-bg);color:var(--return);}
+.cn-tag{
+  font-family:'JetBrains Mono',monospace; font-size:11.5px; color:var(--text);
+  background:var(--panel-2); border:1px dashed var(--border); border-radius:6px;
+  padding:3px 8px; letter-spacing:.4px;
+}
+.txn-items{margin:10px 0; font-size:13px; color:var(--text-dim);}
+.txn-items div{padding:2px 0;}
+.txn-items b{color:var(--text);}
+.txn-foot{display:flex;justify-content:space-between;align-items:center;margin-top:8px;}
+.txn-time{font-size:11px;color:var(--text-faint);}
+.status-pill{
+  font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.4px;
+  padding:3px 9px; border-radius:20px;
+}
+.status-pill.pending{background:#2A2213;color:var(--warn);}
+.status-pill.delivered{background:var(--return-bg);color:var(--return);}
+.status-pill.cancelled{background:var(--panel-2);color:var(--text-faint);}
+.txn-actions{display:flex;gap:8px;margin-top:10px;}
+.txn-actions .btn{flex:1;}
+
+.user-row{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:10px 0;border-bottom:1px solid var(--border);
+  gap:10px;
+}
+.user-row:last-child{border-bottom:none;}
+.user-row .user-email{font-size:13.5px;font-weight:600;word-break:break-all;}
+.user-row select{max-width:110px;}
+
+.toast{
+  position:fixed; left:50%; bottom:22px; transform:translateX(-50%) translateY(20px);
+  background:var(--panel-2); color:var(--text); border:1px solid var(--border);
+  padding:10px 18px; border-radius:20px; font-size:12.5px; font-weight:600;
+  opacity:0; transition:.25s; pointer-events:none; z-index:20; max-width:88%; text-align:center;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.toast.error{border-color:#5A2E29;color:var(--sell);}
+
+.field-hint{font-size:11px;color:var(--text-faint);margin-top:5px;}
+.divider{height:1px;background:var(--border);margin:16px 0;}
+.setup-screen{padding:28px 22px;text-align:left;}
+.setup-screen h2{font-size:17px;}
+.setup-screen code{background:var(--panel-2);padding:2px 6px;border-radius:5px;font-size:12px;}
+</style>
+</head>
+<body>
+<div id="diagBox" style="position:fixed;top:0;left:0;right:0;z-index:9999;background:#111;color:#37D6C4;font-family:monospace;font-size:12px;padding:10px;white-space:pre-wrap;word-break:break-word;max-height:60vh;overflow:auto;border-bottom:2px solid #37D6C4;">Loading… (0/3)</div>
+<script>
+(function(){
+  var box = document.getElementById('diagBox');
+  var log = [];
+  function write(msg){ log.push(msg); box.textContent = log.join('\n'); }
+  window.__diagLog = write;
+  write('Page HTML parsed OK.');
+  window.addEventListener('error', function(e){
+    write('❌ JS ERROR: ' + e.message + ' (line ' + e.lineno + ')');
+  });
+  window.addEventListener('unhandledrejection', function(e){
+    write('❌ PROMISE ERROR: ' + (e.reason && e.reason.message ? e.reason.message : e.reason));
+  });
+  window.__diagBox = box;
+})();
+</script>
+<div class="app" id="app">
+
+  <!-- ============ CONFIG-MISSING SCREEN ============ -->
+  <div id="setupScreen" class="setup-screen hidden">
+    <div class="auth-hero"><div class="mark">🔧</div><h2>Firebase config needed</h2></div>
+    <div class="info-box">
+      This app needs your Firebase project's config values pasted into the
+      <code>firebaseConfig</code> object near the top of the main &lt;script&gt; block
+      in this file. Open the file in a text editor, replace the placeholder values
+      (apiKey, authDomain, projectId, etc.) with the ones from your Firebase project
+      settings, save, and reopen this page.
+    </div>
+  </div>
+
+  <!-- ================= AUTH ================= -->
+  <div id="authScreen" class="auth-screen hidden">
+    <div class="auth-hero">
+      <div class="mark">📦</div>
+      <h1>Smart Stock &amp; Sales Manager</h1>
+      <p id="authSubtitle">Sign in to your warehouse workspace</p>
+    </div>
+    <div id="authError" class="error-box hidden"></div>
+
+    <div id="loginForm">
+      <div class="field"><label>Email</label><input type="email" id="loginEmail" placeholder="you@company.com"></div>
+      <div class="field"><label>Password</label><input type="password" id="loginPass" placeholder="••••••••"></div>
+      <button class="btn btn-primary btn-block" id="loginBtn">Sign in</button>
+      <div class="auth-switch" style="margin-top:14px;">No account yet? <a id="gotoSignup">Create one</a></div>
+    </div>
+
+    <div id="signupForm" class="hidden">
+      <div class="info-box">New accounts start as <b>Staff</b>. The very first person to sign up should
+      open the Firebase Console → Firestore → <code>users</code> collection → their own document,
+      and change <code>role</code> to <code>admin</code> manually — that becomes the first Admin.
+      After that, an Admin can promote other staff from the Users tab inside the app.</div>
+      <div class="field"><label>Email</label><input type="email" id="suEmail" placeholder="you@company.com"></div>
+      <div class="field"><label>Password</label><input type="password" id="suPass" placeholder="At least 6 characters"></div>
+      <button class="btn btn-primary btn-block" id="signupBtn">Create account</button>
+      <div class="auth-switch" style="margin-top:14px;">Already have an account? <a id="gotoLogin">Sign in</a></div>
+    </div>
+  </div>
+
+  <!-- ================= MAIN APP ================= -->
+  <div id="mainScreen" class="hidden" style="display:flex;flex-direction:column;flex:1;">
+    <header class="topbar">
+      <div class="brand">Stock<span>Manager</span></div>
+      <div class="who">
+        <div class="name" id="whoName">—<div class="role-badge" id="whoRole">—</div></div>
+        <button class="logout-btn" id="logoutBtn">Log out</button>
+      </div>
+    </header>
+    <div class="sync-row"><span class="sync-dot" id="syncDot"></span><span id="syncText">Live-synced via Firestore</span></div>
+
+    <nav class="tabbar">
+      <button data-tab="stock" class="active">Stock</button>
+      <button data-tab="txn">Sell / Return</button>
+      <button data-tab="history">History</button>
+      <button data-tab="users" id="usersTabBtn">Users</button>
+    </nav>
+
+    <main>
+      <!-- STOCK TAB -->
+      <section id="tab-stock">
+        <div id="addProductBox">
+          <div class="section-title">Add product</div>
+          <div class="card">
+            <div class="field"><label>Product name</label><input type="text" id="newProdName" placeholder="e.g. Amistar Top"></div>
+            <div style="display:flex; gap:10px;">
+              <div class="field" style="flex:1;"><label>Quantity</label><input type="number" id="newProdQty" placeholder="0" min="0"></div>
+              <div class="field" style="flex:1;"><label>Unit</label>
+                <select id="newProdUnit"><option value="carton">Carton</option><option value="piece">Piece</option></select>
+              </div>
+            </div>
+            <div class="field"><label>Low stock alert below</label><input type="number" id="newProdThreshold" placeholder="5" min="0"></div>
+            <button class="btn btn-primary btn-block" id="addProdBtn">Add product</button>
+          </div>
+        </div>
+
+        <div class="section-title">Current stock</div>
+        <div class="card" id="stockList"></div>
+      </section>
+
+      <!-- TRANSACTION TAB -->
+      <section id="tab-txn" class="hidden">
+        <div class="mode-toggle">
+          <div class="mode-opt sell active" data-mode="sell">🔻 Sell</div>
+          <div class="mode-opt return" data-mode="return">🔺 Return</div>
+        </div>
+
+        <div class="section-title">Add products to transaction</div>
+        <div class="card">
+          <div class="picker-row">
+            <select id="pickProduct"></select>
+            <input type="number" id="pickQty" placeholder="Qty" min="1" style="max-width:80px;">
+            <select id="pickUnit" style="max-width:100px;"><option value="carton">Carton</option><option value="piece">Piece</option></select>
+          </div>
+          <button class="btn btn-outline btn-block" id="addLineBtn">+ Add line item</button>
+        </div>
+
+        <div class="section-title">Line items</div>
+        <div id="lineItems"><div class="empty">No items added yet.</div></div>
+
+        <div class="section-title">CN number</div>
+        <div class="card">
+          <div class="field"><label>Consignment / CN Number *</label><input type="text" id="cnNumber" placeholder="e.g. CN-2026-00417"></div>
+          <button class="btn btn-primary btn-block" id="submitTxnBtn">Submit transaction</button>
+        </div>
+      </section>
+
+      <!-- HISTORY TAB -->
+      <section id="tab-history" class="hidden">
+        <div class="section-title">Transaction history</div>
+        <div id="historyList"></div>
+      </section>
+
+      <!-- USERS TAB (admin only) -->
+      <section id="tab-users" class="hidden">
+        <div class="info-box">New teammates sign up themselves from the login screen (they start as
+        Staff). Promote or demote them here.</div>
+        <div class="section-title">All users</div>
+        <div class="card" id="usersList"></div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"
+  onload="window.__diagLog('✅ firebase-app-compat.js loaded')"
+  onerror="window.__diagLog('❌ FAILED to load firebase-app-compat.js — check internet connection')"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"
+  onload="window.__diagLog('✅ firebase-auth-compat.js loaded')"
+  onerror="window.__diagLog('❌ FAILED to load firebase-auth-compat.js — check internet connection')"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"
+  onload="window.__diagLog('✅ firebase-firestore-compat.js loaded')"
+  onerror="window.__diagLog('❌ FAILED to load firebase-firestore-compat.js — check internet connection')"></script>
+<script>
+/* =========================================================================
+   Smart Stock & Sales Manager — Firebase Firestore + Firebase Auth edition
+   (compat build — works even when this file is opened directly from disk,
+   e.g. via Chrome's "Open with" on a downloaded file, since it does not
+   rely on ES module imports which browsers block under the file:// origin)
+   -------------------------------------------------------------------------
+   1) Create a free project at https://console.firebase.google.com
+   2) Build > Authentication > Sign-in method > enable "Email/Password"
+   3) Build > Firestore Database > Create database (start in production mode)
+   4) Project settings (gear icon) > General > "Your apps" > Web app (</>)
+      copy the firebaseConfig object it gives you and paste it below.
+   5) Firestore > Rules tab, paste the ruleset from the message this file
+      was shared with, then Publish.
+   ========================================================================= */
+
+// ⬇️⬇️⬇️ PASTE YOUR FIREBASE PROJECT CONFIG HERE ⬇️⬇️⬇️
+const firebaseConfig = {
+  apiKey: "AIzaSyAOHFRH4Ukt5rITg0zB9awtrmutfptVvxo",
+  authDomain: "smart-stock-manager-5e32b.firebaseapp.com",
+  projectId: "smart-stock-manager-5e32b",
+  storageBucket: "smart-stock-manager-5e32b.firebasestorage.app",
+  messagingSenderId: "532604793507",
+  appId: "1:532604793507:web:c7cf1c5078b651102d0516"
+};
+// ⬆️⬆️⬆️ PASTE YOUR FIREBASE PROJECT CONFIG HERE ⬆️⬆️⬆️
+
+const CONFIG_IS_PLACEHOLDER = firebaseConfig.apiKey === "YOUR_API_KEY";
+
+let auth, db;
+try{
+  window.__diagLog('typeof firebase = ' + typeof firebase);
+  if(!CONFIG_IS_PLACEHOLDER){
+    firebase.initializeApp(firebaseConfig);
+    window.__diagLog('✅ firebase.initializeApp() OK');
+    auth = firebase.auth();
+    db = firebase.firestore();
+    window.__diagLog('✅ auth & db objects created');
+  } else {
+    window.__diagLog('⚠️ CONFIG_IS_PLACEHOLDER is true — showing setup screen');
+  }
+}catch(e){
+  window.__diagLog('❌ ERROR during Firebase init: ' + e.message);
+}
+
+let state = { products:{}, transactions:{}, users:{} };
+let session = null; // { uid, email, role }
+let unsubProducts=null, unsubTxns=null, unsubUsers=null;
+
+/* ---------------- utils ---------------- */
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function fmtTime(ts){
+  if(!ts) return '—';
+  const d = ts.toDate ? ts.toDate() : new Date(ts);
+  return d.toLocaleString(undefined, {day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+}
+function showToast(msg, isError){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (isError ? ' error' : '');
+  clearTimeout(showToast._h);
+  showToast._h = setTimeout(()=>{ t.className = 'toast'; }, 2800);
+}
+function isAdmin(){ return session && session.role === 'admin'; }
+function setSyncBadge(ok){
+  const dot = document.getElementById('syncDot');
+  const text = document.getElementById('syncText');
+  if(!dot) return;
+  dot.classList.toggle('offline', !ok);
+  text.textContent = ok ? 'Live-synced via Firestore' : 'Connection issue — retrying…';
+}
+
+/* ================= BOOT ================= */
+if(CONFIG_IS_PLACEHOLDER){
+  document.getElementById('setupScreen').classList.remove('hidden');
+  window.__diagLog('Showing setup screen.');
+} else {
+  (async function(){
+    try{
+      // Local file / content:// origins often can't use IndexedDB persistence,
+      // which makes onAuthStateChanged hang forever with no error. Force
+      // in-memory persistence instead so auth state resolves immediately.
+      await auth.setPersistence(firebase.auth.Auth.Persistence.NONE);
+      window.__diagLog('✅ auth persistence set to NONE (in-memory)');
+    }catch(e){
+      window.__diagLog('⚠️ setPersistence failed (continuing anyway): ' + e.message);
+    }
+    window.__diagLog('Waiting for onAuthStateChanged…');
+    auth.onAuthStateChanged(async (user)=>{
+      window.__diagLog('✅ onAuthStateChanged fired. user = ' + (user ? user.email : 'null'));
+      if(user){
+        await attachSession(user);
+      } else {
+        detachListeners();
+        session = null;
+        showAuth();
+      }
+      if(window.__diagBox) window.__diagBox.style.display = 'none';
+    }, function(err){
+      window.__diagLog('❌ onAuthStateChanged ERROR: ' + err.message);
+    });
+  })();
+  setTimeout(function(){
+    if(window.__diagBox && window.__diagBox.style.display !== 'none'){
+      window.__diagLog('⏱️ 6s passed and app still has not booted — see errors above, or none appeared (likely a network/CDN block).');
+    }
+  }, 6000);
+}
+
+async function attachSession(user){
+  try{
+    const snap = await db.collection('users').doc(user.uid).get();
+    const role = snap.exists ? snap.data().role : 'staff';
+    if(!snap.exists){
+      await db.collection('users').doc(user.uid).set({ email:user.email, role:'staff', createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+    }
+    session = { uid:user.uid, email:user.email, role };
+    enterApp();
+  }catch(e){
+    showToast('Could not load your profile: ' + e.message, true);
+  }
+}
+
+/* ================= AUTH SCREEN ================= */
+function showAuth(){
+  document.getElementById('authScreen').classList.remove('hidden');
+  document.getElementById('mainScreen').classList.add('hidden');
+  switchAuthForm('login');
+}
+function switchAuthForm(which){
+  document.getElementById('loginForm').classList.toggle('hidden', which!=='login');
+  document.getElementById('signupForm').classList.toggle('hidden', which!=='signup');
+  document.getElementById('authError').classList.add('hidden');
+}
+document.getElementById('gotoSignup').addEventListener('click', ()=>switchAuthForm('signup'));
+document.getElementById('gotoLogin').addEventListener('click', ()=>switchAuthForm('login'));
+
+function authErr(msg){
+  const e = document.getElementById('authError');
+  e.textContent = msg;
+  e.classList.remove('hidden');
+}
+
+document.getElementById('loginBtn').addEventListener('click', async ()=>{
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass = document.getElementById('loginPass').value;
+  if(!email || !pass){ authErr('Enter email and password.'); return; }
+  try{
+    await auth.signInWithEmailAndPassword(email, pass);
+  }catch(e){ authErr(friendlyAuthError(e)); }
+});
+
+document.getElementById('signupBtn').addEventListener('click', async ()=>{
+  const email = document.getElementById('suEmail').value.trim();
+  const pass = document.getElementById('suPass').value;
+  if(!email || !pass){ authErr('Enter email and password.'); return; }
+  if(pass.length < 6){ authErr('Password must be at least 6 characters.'); return; }
+  try{
+    const cred = await auth.createUserWithEmailAndPassword(email, pass);
+    await db.collection('users').doc(cred.user.uid).set({ email, role:'staff', createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+    showToast('Account created as Staff');
+  }catch(e){ authErr(friendlyAuthError(e)); }
+});
+
+function friendlyAuthError(e){
+  const code = e.code || '';
+  if(code.includes('email-already-in-use')) return 'That email already has an account. Try signing in.';
+  if(code.includes('invalid-email')) return 'Enter a valid email address.';
+  if(code.includes('wrong-password') || code.includes('invalid-credential')) return 'Incorrect email or password.';
+  if(code.includes('user-not-found')) return 'No account with that email.';
+  if(code.includes('weak-password')) return 'Password must be at least 6 characters.';
+  return e.message || 'Something went wrong.';
+}
+
+document.getElementById('logoutBtn').addEventListener('click', ()=>{ auth.signOut(); });
+
+/* ================= TABS ================= */
+document.querySelectorAll('.tabbar button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    if(btn.id === 'usersTabBtn' && !isAdmin()) return;
+    document.querySelectorAll('.tabbar button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    ['stock','txn','history','users'].forEach(t=>{
+      document.getElementById('tab-'+t).classList.toggle('hidden', t !== btn.dataset.tab);
+    });
+    if(btn.dataset.tab === 'txn') renderProductPicker();
+  });
+});
+
+/* ================= ENTER APP ================= */
+function enterApp(){
+  document.getElementById('setupScreen').classList.add('hidden');
+  document.getElementById('authScreen').classList.add('hidden');
+  document.getElementById('mainScreen').classList.remove('hidden');
+  document.getElementById('whoName').childNodes[0].textContent = session.email;
+  document.getElementById('whoRole').textContent = session.role;
+  document.getElementById('usersTabBtn').style.display = isAdmin() ? '' : 'none';
+  document.getElementById('addProductBox').style.display = isAdmin() ? '' : 'none';
+  attachListeners();
+}
+
+function detachListeners(){
+  if(unsubProducts) unsubProducts();
+  if(unsubTxns) unsubTxns();
+  if(unsubUsers) unsubUsers();
+  unsubProducts = unsubTxns = unsubUsers = null;
+}
+
+function attachListeners(){
+  detachListeners();
+  unsubProducts = db.collection('products').onSnapshot(snap=>{
+    state.products = {};
+    snap.forEach(d=> state.products[d.id] = d.data());
+    renderStock(); renderProductPicker();
+    setSyncBadge(true);
+  }, err=>{ setSyncBadge(false); showToast('Sync error: ' + err.message, true); });
+
+  unsubTxns = db.collection('transactions').orderBy('createdAt','desc').onSnapshot(snap=>{
+    state.transactions = {};
+    snap.forEach(d=> state.transactions[d.id] = d.data());
+    renderHistory();
+  }, err=>{ setSyncBadge(false); });
+
+  if(isAdmin()){
+    unsubUsers = db.collection('users').onSnapshot(snap=>{
+      state.users = {};
+      snap.forEach(d=> state.users[d.id] = d.data());
+      renderUsers();
+    });
+  }
+}
+
+/* ================= STOCK TAB ================= */
+function lowThreshold(p){ return (p.threshold === undefined || p.threshold === null || p.threshold === '') ? 5 : p.threshold; }
+
+function renderStock(){
+  const el = document.getElementById('stockList');
+  const ids = Object.keys(state.products).sort((a,b)=> state.products[a].name.localeCompare(state.products[b].name));
+  if(ids.length === 0){ el.innerHTML = '<div class="empty">No products yet. Add your first product above.</div>'; return; }
+  el.innerHTML = ids.map(id=>{
+    const p = state.products[id];
+    const low = p.qty <= lowThreshold(p);
+    const adminControls = isAdmin() ? `
+      <button class="icon-btn" onclick="adjustStock('${id}',1)">+</button>
+      <button class="icon-btn" onclick="adjustStock('${id}',-1)">−</button>
+      <button class="icon-btn danger" onclick="deleteProduct('${id}')">✕</button>` : '';
+    return `<div class="stock-row">
+      <div>
+        <div class="stock-name">${escapeHtml(p.name)}</div>
+        <div class="stock-meta">${escapeHtml(p.unit)}${low?' · low stock':''}</div>
+      </div>
+      <div class="stock-right">
+        <div class="qty-pill ${low?'low':''}">${p.qty}</div>
+        ${adminControls}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+document.getElementById('addProdBtn').addEventListener('click', async ()=>{
+  if(!isAdmin()){ showToast('Only admins can add products.', true); return; }
+  const name = document.getElementById('newProdName').value.trim();
+  const qty = parseFloat(document.getElementById('newProdQty').value || '0');
+  const unit = document.getElementById('newProdUnit').value;
+  const thresholdRaw = document.getElementById('newProdThreshold').value;
+  const threshold = thresholdRaw === '' ? 5 : parseFloat(thresholdRaw);
+  if(!name){ showToast('Enter a product name.', true); return; }
+  if(isNaN(qty) || qty < 0){ showToast('Enter a valid quantity.', true); return; }
+  try{
+    await db.collection('products').add({ name, qty, unit, threshold });
+    document.getElementById('newProdName').value='';
+    document.getElementById('newProdQty').value='';
+    document.getElementById('newProdThreshold').value='';
+    showToast(`Added ${name}`);
+  }catch(e){ showToast('Could not add product: ' + e.message, true); }
+});
+
+async function adjustStock(id, delta){
+  if(!isAdmin()){ showToast('Only admins can edit stock.', true); return; }
+  const p = state.products[id];
+  if(!p) return;
+  const next = Math.max(0, p.qty + delta);
+  try{ await db.collection('products').doc(id).update({ qty: next }); }
+  catch(e){ showToast('Update failed: ' + e.message, true); }
+}
+window.adjustStock = adjustStock;
+
+async function deleteProduct(id){
+  if(!isAdmin()){ showToast('Only admins can delete products.', true); return; }
+  const p = state.products[id];
+  if(!p) return;
+  if(!confirm(`Delete "${p.name}"? This cannot be undone.`)) return;
+  try{ await db.collection('products').doc(id).delete(); showToast(`Deleted ${p.name}`); }
+  catch(e){ showToast('Delete failed: ' + e.message, true); }
+}
+window.deleteProduct = deleteProduct;
+
+/* ================= TRANSACTION TAB ================= */
+let txnMode = 'sell';
+let pendingLines = []; // { productId, name, qty, unit }
+
+document.querySelectorAll('.mode-opt').forEach(el=>{
+  el.addEventListener('click', ()=>{
+    document.querySelectorAll('.mode-opt').forEach(m=>m.classList.remove('active'));
+    el.classList.add('active');
+    txnMode = el.dataset.mode;
+  });
+});
+
+function renderProductPicker(){
+  const sel = document.getElementById('pickProduct');
+  const ids = Object.keys(state.products).sort((a,b)=> state.products[a].name.localeCompare(state.products[b].name));
+  if(ids.length === 0){
+    sel.innerHTML = '<option value="">No products available</option>';
+    return;
+  }
+  const prev = sel.value;
+  sel.innerHTML = ids.map(id=> `<option value="${id}">${escapeHtml(state.products[id].name)}</option>`).join('');
+  if(ids.includes(prev)) sel.value = prev;
+}
+
+document.getElementById('addLineBtn').addEventListener('click', ()=>{
+  const sel = document.getElementById('pickProduct');
+  const id = sel.value;
+  const qty = parseFloat(document.getElementById('pickQty').value);
+  const unit = document.getElementById('pickUnit').value;
+  if(!id){ showToast('Add a product to stock first.', true); return; }
+  if(isNaN(qty) || qty <= 0){ showToast('Enter a valid quantity.', true); return; }
+  const p = state.products[id];
+  pendingLines.push({ productId:id, name:p.name, qty, unit });
+  document.getElementById('pickQty').value = '';
+  renderLineItems();
+});
+
+function renderLineItems(){
+  const el = document.getElementById('lineItems');
+  if(pendingLines.length === 0){ el.innerHTML = '<div class="empty">No items added yet.</div>'; return; }
+  el.innerHTML = pendingLines.map((li,i)=> `
+    <div class="line-item">
+      <div class="li-name">${escapeHtml(li.name)} <span class="li-unit mono">× ${li.qty} ${escapeHtml(li.unit)}</span></div>
+      <button class="icon-btn danger" onclick="removeLine(${i})">✕</button>
+    </div>`).join('');
+}
+function removeLine(i){ pendingLines.splice(i,1); renderLineItems(); }
+window.removeLine = removeLine;
+
+document.getElementById('submitTxnBtn').addEventListener('click', async ()=>{
+  const cn = document.getElementById('cnNumber').value.trim();
+  if(pendingLines.length === 0){ showToast('Add at least one line item.', true); return; }
+  if(!cn){ showToast('CN number is required.', true); return; }
+
+  try{
+    // Atomically bump stock for each product using Firestore's increment()
+    for(const li of pendingLines){
+      const delta = txnMode === 'sell' ? -li.qty : li.qty;
+      await db.collection('products').doc(li.productId).update({ qty: firebase.firestore.FieldValue.increment(delta) });
+    }
+    await db.collection('transactions').add({
+      items: pendingLines.slice(),
+      cn, type: txnMode, status: 'pending',
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(), createdBy: session.uid, createdByEmail: session.email
+    });
+    pendingLines = [];
+    document.getElementById('cnNumber').value = '';
+    renderLineItems();
+    showToast(`Transaction submitted — ${cn}`);
+  }catch(e){ showToast('Submit failed: ' + e.message, true); }
+});
+
+/* ================= HISTORY TAB ================= */
+function renderHistory(){
+  const el = document.getElementById('historyList');
+  const ids = Object.keys(state.transactions);
+  if(ids.length === 0){ el.innerHTML = '<div class="empty">No transactions yet.</div>'; return; }
+  el.innerHTML = ids.map(id=>{
+    const t = state.transactions[id];
+    const itemsHtml = t.items.map(li=> `<div>${escapeHtml(li.name)} — <b>${li.qty} ${escapeHtml(li.unit)}</b></div>`).join('');
+    const actions = t.status === 'pending' ? `
+      <div class="txn-actions">
+        <button class="btn btn-primary btn-sm" onclick="deliverTxn('${id}')">🚚 Delivery</button>
+        <button class="btn btn-danger-outline btn-sm" onclick="cancelTxn('${id}')">✕ Cancel</button>
+      </div>` : '';
+    return `<div class="txn-card">
+      <div class="txn-top">
+        <span class="txn-type ${t.type}">${t.type === 'sell' ? 'Sell' : 'Return'}</span>
+        <span class="cn-tag">${escapeHtml(t.cn)}</span>
+      </div>
+      <div class="txn-items">${itemsHtml}</div>
+      <div class="txn-foot">
+        <span class="txn-time">${fmtTime(t.createdAt)} · by ${escapeHtml(t.createdByEmail||'')}</span>
+        <span class="status-pill ${t.status}">${t.status}</span>
+      </div>
+      ${actions}
+    </div>`;
+  }).join('');
+}
+
+async function deliverTxn(id){
+  const t = state.transactions[id];
+  if(!t || t.status !== 'pending') return;
+  try{
+    await db.collection('transactions').doc(id).update({
+      status: 'delivered', deliveredAt: firebase.firestore.FieldValue.serverTimestamp(), deliveredBy: session.email
+    });
+    showToast(`Delivered — ${t.cn}`);
+  }catch(e){ showToast('Failed: ' + e.message, true); }
+}
+window.deliverTxn = deliverTxn;
+
+async function cancelTxn(id){
+  const t = state.transactions[id];
+  if(!t || t.status !== 'pending') return;
+  if(!confirm('Cancel this transaction? Stock will be reverted.')) return;
+  try{
+    for(const li of t.items){
+      const delta = t.type === 'sell' ? li.qty : -li.qty;
+      await db.collection('products').doc(li.productId).update({ qty: firebase.firestore.FieldValue.increment(delta) });
+    }
+    await db.collection('transactions').doc(id).update({
+      status: 'cancelled', cancelledAt: firebase.firestore.FieldValue.serverTimestamp(), cancelledBy: session.email
+    });
+    showToast(`Cancelled — ${t.cn}, stock reverted`);
+  }catch(e){ showToast('Failed: ' + e.message, true); }
+}
+window.cancelTxn = cancelTxn;
+
+/* ================= USERS TAB (admin only) ================= */
+function renderUsers(){
+  if(!isAdmin()) return;
+  const el = document.getElementById('usersList');
+  const keys = Object.keys(state.users).sort((a,b)=> (state.users[a].email||'').localeCompare(state.users[b].email||''));
+  if(keys.length === 0){ el.innerHTML = '<div class="empty">No users.</div>'; return; }
+  el.innerHTML = keys.map(uid=>{
+    const u = state.users[uid];
+    const isSelf = uid === session.uid;
+    return `<div class="user-row">
+      <div class="user-email">${escapeHtml(u.email)}${isSelf ? ' (you)' : ''}</div>
+      <select ${isSelf ? 'disabled' : ''} onchange="changeRole('${uid}', this.value)">
+        <option value="staff" ${u.role==='staff'?'selected':''}>Staff</option>
+        <option value="admin" ${u.role==='admin'?'selected':''}>Admin</option>
+      </select>
+    </div>`;
+  }).join('');
+}
+
+async function changeRole(uid, role){
+  try{
+    await db.collection('users').doc(uid).update({ role });
+    showToast('Role updated');
+  }catch(e){ showToast('Failed: ' + e.message, true); renderUsers(); }
+}
+window.changeRole = changeRole;
+</script>
+</body>
+</html>
