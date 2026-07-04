@@ -1,0 +1,1454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Smart Stock &amp; Sales Manager</title>
+<link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiU21hcnQgU3RvY2sgJiBTYWxlcyBNYW5hZ2VyIiwic3RhcnRfdXJsIjoiLiIsImRpc3BsYXkiOiJzdGFuZGFsb25lIn0=">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0F1417;
+  --panel:#161D22;
+  --panel-2:#1D262C;
+  --border:#2A343B;
+  --text:#EAF1F4;
+  --text-dim:#8FA0A8;
+  --text-faint:#5C6970;
+  --accent:#37D6C4;
+  --accent-dim:#1E5F58;
+  --warn:#F2B84B;
+  --sell:#FF6E63;
+  --sell-bg:#3A211F;
+  --return:#4ADE80;
+  --return-bg:#1B3327;
+  --danger:#FF5C5C;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'Inter',sans-serif;
+  min-height:100vh;
+  display:flex;
+  justify-content:center;
+  -webkit-tap-highlight-color:transparent;
+}
+.app{
+  width:100%;
+  max-width:480px;
+  min-height:100vh;
+  background:var(--bg);
+  display:flex;
+  flex-direction:column;
+  position:relative;
+}
+h1,h2,h3,.brand,.tabbar button,.section-title{font-family:'Sora',sans-serif;}
+.mono{font-family:'JetBrains Mono',monospace;}
+::selection{background:var(--accent);color:#00201C;}
+
+header.topbar{
+  background:var(--panel);
+  border-bottom:1px solid var(--border);
+  padding:16px 18px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  position:sticky; top:0; z-index:5;
+}
+.brand{font-size:17px;font-weight:700;letter-spacing:.2px;}
+.brand span{color:var(--accent);}
+.who{display:flex;align-items:center;gap:10px;}
+.who .name{font-size:12px;color:var(--text-dim);text-align:right;line-height:1.3;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.who .role-badge{
+  font-size:10px;text-transform:uppercase;letter-spacing:.5px;
+  color:var(--accent);border:1px solid var(--accent-dim);
+  padding:1px 6px;border-radius:20px;display:inline-block;margin-top:2px;
+}
+.logout-btn{
+  background:none;border:1px solid var(--border);color:var(--text-dim);
+  padding:6px 10px;border-radius:8px;font-size:12px;cursor:pointer;
+}
+.sync-dot{
+  width:7px;height:7px;border-radius:50%;background:var(--return);
+  display:inline-block;margin-right:5px;
+  box-shadow:0 0 0 0 rgba(74,222,128,.6);
+  animation:pulse 2.4s infinite;
+}
+.sync-dot.offline{background:var(--warn);animation:none;}
+@keyframes pulse{
+  0%{box-shadow:0 0 0 0 rgba(74,222,128,.5);}
+  70%{box-shadow:0 0 0 6px rgba(74,222,128,0);}
+  100%{box-shadow:0 0 0 0 rgba(74,222,128,0);}
+}
+.sync-row{font-size:10.5px;color:var(--text-faint);padding:6px 18px;background:var(--panel);border-bottom:1px solid var(--border);}
+
+.tabbar{
+  display:flex; background:var(--panel);
+  border-bottom:1px solid var(--border);
+  position:sticky; top:53px; z-index:4;
+  overflow-x:auto;
+}
+.tabbar button{
+  flex:1; background:none; border:none; color:var(--text-dim);
+  padding:12px 8px; font-size:12.5px; font-weight:600; cursor:pointer;
+  border-bottom:2px solid transparent; white-space:nowrap;
+}
+.tabbar button.active{ color:var(--accent); border-bottom-color:var(--accent); }
+
+main{ flex:1; padding:16px 16px 90px; }
+.hidden{display:none !important;}
+
+.section-title{
+  font-size:13px; font-weight:700; color:var(--text-dim);
+  text-transform:uppercase; letter-spacing:.6px;
+  margin:22px 0 10px; display:flex; align-items:center; gap:8px;
+}
+.section-title:first-child{margin-top:0;}
+.section-title::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--accent);}
+
+.card{
+  background:var(--panel); border:1px solid var(--border); border-radius:12px;
+  padding:14px;
+}
+.field{margin-bottom:12px;}
+.field label{display:block;font-size:12px;color:var(--text-dim);margin-bottom:6px;font-weight:600;}
+input[type=text],input[type=password],input[type=email],input[type=number],select,textarea{
+  width:100%; background:var(--panel-2); border:1px solid var(--border);
+  color:var(--text); border-radius:8px; padding:10px 12px; font-size:14.5px;
+  font-family:'Inter',sans-serif; outline:none;
+}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);}
+input::placeholder{color:var(--text-faint);}
+
+.btn{
+  border:none; border-radius:9px; padding:11px 16px; font-weight:700;
+  font-size:14px; cursor:pointer; font-family:'Sora',sans-serif;
+}
+.btn-primary{background:var(--accent); color:#04211D;}
+.btn-primary:active{opacity:.85;}
+.btn-block{width:100%;}
+.btn-outline{background:none;border:1px solid var(--border);color:var(--text);}
+.btn-danger{background:var(--danger);color:#2B0000;}
+.btn-danger-outline{background:none;border:1px solid var(--danger);color:var(--danger);}
+.btn-sm{padding:7px 12px;font-size:12.5px;border-radius:7px;}
+.btn:disabled{opacity:.4;cursor:not-allowed;}
+
+.error-box{
+  background:var(--sell-bg); color:var(--sell); border:1px solid #5A2E29;
+  padding:9px 12px; border-radius:8px; font-size:12.5px; margin-bottom:12px;
+}
+.info-box{
+  background:var(--panel-2); color:var(--text-dim); border:1px solid var(--border);
+  padding:9px 12px; border-radius:8px; font-size:12px; margin-bottom:12px; line-height:1.5;
+}
+
+.auth-screen{
+  flex:1; display:flex; flex-direction:column; justify-content:center;
+  padding:32px 26px; gap:18px;
+}
+.auth-hero{ text-align:center; margin-bottom:6px; }
+.auth-hero .mark{
+  width:56px;height:56px;border-radius:16px;margin:0 auto 14px;
+  background:linear-gradient(155deg,var(--accent),#1a8a7e);
+  display:flex;align-items:center;justify-content:center;
+  font-size:24px; box-shadow:0 8px 24px rgba(55,214,196,.25);
+}
+.auth-hero h1{font-size:20px;margin:0 0 4px;}
+.auth-hero p{font-size:12.5px;color:var(--text-dim);margin:0;}
+.auth-switch{text-align:center;font-size:12.5px;color:var(--text-dim);}
+.auth-switch a{color:var(--accent);cursor:pointer;font-weight:600;text-decoration:none;}
+
+.stock-row{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:12px 0; border-bottom:1px solid var(--border);
+  gap:10px;
+}
+.stock-row:last-child{border-bottom:none;}
+.stock-name{font-weight:600; font-size:14.5px;}
+.stock-meta{font-size:11px;color:var(--text-faint);margin-top:2px;}
+.stock-right{display:flex;align-items:center;gap:10px;}
+.qty-pill{
+  font-family:'JetBrains Mono',monospace; font-weight:700; font-size:15px;
+  padding:4px 10px; border-radius:20px; background:var(--panel-2);
+  border:1px solid var(--border); min-width:44px; text-align:center;
+}
+.qty-pill.low{ color:var(--warn); border-color:#5A4420; background:#2A2213; }
+.icon-btn{
+  background:none;border:1px solid var(--border);color:var(--text-dim);
+  width:28px;height:28px;border-radius:7px;cursor:pointer;font-size:13px;
+  display:flex;align-items:center;justify-content:center;
+}
+.icon-btn.danger{color:var(--danger);border-color:#5A2E29;}
+.empty{ font-size:12.5px; color:var(--text-faint); font-style:italic; padding:14px 0; text-align:center;}
+
+.mode-toggle{ display:flex; gap:8px; margin-bottom:18px; }
+.mode-opt{
+  flex:1; padding:12px 0; text-align:center; border-radius:10px;
+  border:1px solid var(--border); background:var(--panel); cursor:pointer;
+  font-weight:700; font-size:13.5px; color:var(--text-dim);
+}
+.mode-opt.sell.active{ background:var(--sell-bg); color:var(--sell); border-color:#5A2E29; }
+.mode-opt.return.active{ background:var(--return-bg); color:var(--return); border-color:#245C3E; }
+
+.line-item{
+  display:flex; align-items:center; gap:8px; background:var(--panel-2);
+  border:1px solid var(--border); border-radius:9px; padding:9px 10px; margin-bottom:8px;
+}
+.line-item .li-name{flex:1;font-size:13.5px;font-weight:600;}
+.line-item .li-unit{font-size:10.5px;color:var(--text-faint);}
+.picker-row{display:flex;gap:8px;margin-bottom:10px;}
+.picker-row select{flex:1;}
+
+.txn-card{
+  background:var(--panel); border:1px solid var(--border); border-radius:12px;
+  padding:14px; margin-bottom:12px;
+}
+.txn-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;}
+.txn-type{
+  font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.4px;
+  padding:3px 9px; border-radius:20px;
+}
+.txn-type.sell{background:var(--sell-bg);color:var(--sell);}
+.txn-type.return{background:var(--return-bg);color:var(--return);}
+.cn-tag{
+  font-family:'JetBrains Mono',monospace; font-size:11.5px; color:var(--text);
+  background:var(--panel-2); border:1px dashed var(--border); border-radius:6px;
+  padding:3px 8px; letter-spacing:.4px;
+}
+.txn-items{margin:10px 0; font-size:13px; color:var(--text-dim);}
+.txn-items div{padding:2px 0;}
+.txn-items b{color:var(--text);}
+.txn-foot{display:flex;justify-content:space-between;align-items:center;margin-top:8px;}
+.txn-time{font-size:11px;color:var(--text-faint);}
+.status-pill{
+  font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.4px;
+  padding:3px 9px; border-radius:20px;
+}
+.status-pill.pending{background:#2A2213;color:var(--warn);}
+.status-pill.requested{background:#1E2A3A;color:#6BB8FF;}
+.status-pill.delivered{background:var(--return-bg);color:var(--return);}
+.status-pill.cancelled{background:var(--panel-2);color:var(--text-faint);}
+.txn-actions{display:flex;gap:8px;margin-top:10px;}
+.txn-actions .btn{flex:1;}
+
+.user-row{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:10px 0;border-bottom:1px solid var(--border);
+  gap:10px;
+}
+.user-row:last-child{border-bottom:none;}
+.user-row .user-email{font-size:13.5px;font-weight:600;word-break:break-all;}
+.user-row select{max-width:110px;}
+
+.toast{
+  position:fixed; left:50%; bottom:22px; transform:translateX(-50%) translateY(20px);
+  background:var(--panel-2); color:var(--text); border:1px solid var(--border);
+  padding:10px 18px; border-radius:20px; font-size:12.5px; font-weight:600;
+  opacity:0; transition:.25s; pointer-events:none; z-index:20; max-width:88%; text-align:center;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.toast.error{border-color:#5A2E29;color:var(--sell);}
+
+.field-hint{font-size:11px;color:var(--text-faint);margin-top:5px;}
+.divider{height:1px;background:var(--border);margin:16px 0;}
+.setup-screen{padding:28px 22px;text-align:left;}
+.setup-screen h2{font-size:17px;}
+.setup-screen code{background:var(--panel-2);padding:2px 6px;border-radius:5px;font-size:12px;}
+
+.value-card{text-align:center;}
+.value-card .label{font-size:11px;color:var(--text-dim);letter-spacing:.4px;margin-bottom:4px;}
+.value-card .amount{font-size:26px;font-weight:800;color:var(--accent);}
+.value-card .amount.sm{font-size:22px;}
+
+.modal-overlay{
+  position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:30;
+  display:flex; align-items:flex-end; justify-content:center;
+}
+.modal-box{
+  width:100%; max-width:480px; background:var(--panel); border:1px solid var(--border);
+  border-radius:16px 16px 0 0; padding:18px; max-height:88vh; overflow-y:auto;
+}
+.modal-title{font-family:'Sora',sans-serif;font-size:15px;font-weight:700;margin-bottom:14px;}
+
+.li-line-total{font-size:11px;color:var(--text-faint);margin-top:3px;}
+.li-line-total b{color:var(--text);}
+
+.return-item-card{background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:12px; margin-bottom:10px;}
+.return-item-card label{display:flex;align-items:center;gap:8px;font-weight:600;font-size:13.5px;cursor:pointer;}
+.return-item-card input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent);}
+.return-item-card.checked{border-color:var(--accent);background:var(--panel-2);}
+
+/* tappable CN tag (copies to clipboard) */
+.cn-tag{cursor:pointer;user-select:none;transition:background .12s,color .12s;}
+.cn-tag:active{background:var(--accent);color:#04211D;border-color:var(--accent);}
+.cn-copy-ic{opacity:.55;font-size:10px;margin-left:4px;}
+
+/* ===== dashboard ===== */
+.dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.dash-stat{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:13px;}
+.dash-stat .k{font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;}
+.dash-stat .v{font-size:19px;font-weight:800;font-family:'JetBrains Mono',monospace;margin-top:4px;color:var(--text);}
+.dash-stat .v.pos{color:var(--return);}
+.dash-stat .v.neg{color:var(--sell);}
+.dash-stat .sub{font-size:10px;color:var(--text-faint);margin-top:3px;}
+
+.bar-chart{display:flex;align-items:flex-end;gap:4px;height:120px;padding:4px 0 0;}
+.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end;min-width:0;}
+.bar{width:100%;max-width:18px;border-radius:4px 4px 0 0;background:linear-gradient(180deg,var(--accent),#1a8a7e);min-height:2px;transition:height .3s;}
+.bar.neg{background:linear-gradient(180deg,#8a3a34,var(--sell));}
+.bar.zero{background:var(--panel-2);}
+.bar-lbl{font-size:9px;color:var(--text-faint);font-family:'JetBrains Mono',monospace;}
+.chart-cap{font-size:10px;color:var(--text-faint);margin-top:8px;text-align:center;}
+
+.dl-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border);gap:10px;}
+.dl-row:last-child{border-bottom:none;}
+.dl-date{color:var(--text-dim);font-family:'JetBrains Mono',monospace;font-size:11.5px;font-weight:600;}
+.dl-meta{color:var(--text-faint);font-size:10px;margin-top:2px;}
+.dl-amt{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:13.5px;white-space:nowrap;}
+.dl-amt.pos{color:var(--return);}
+.dl-amt.neg{color:var(--sell);}
+
+.mon-row{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid var(--border);gap:10px;}
+.mon-row:last-child{border-bottom:none;}
+.mon-name{font-weight:700;font-size:13.5px;}
+.mon-sub{font-size:10px;color:var(--text-faint);margin-top:2px;}
+.mon-profit{font-family:'JetBrains Mono',monospace;font-weight:800;font-size:15px;white-space:nowrap;}
+.mon-profit.pos{color:var(--return);}
+.mon-profit.neg{color:var(--sell);}
+</style>
+</head>
+<body>
+<div id="diagBox" style="position:fixed;top:0;left:0;right:0;z-index:9999;background:#111;color:#37D6C4;font-family:monospace;font-size:12px;padding:10px;white-space:pre-wrap;word-break:break-word;max-height:60vh;overflow:auto;border-bottom:2px solid #37D6C4;">Loading… (0/3)</div>
+<script>
+(function(){
+  var box = document.getElementById('diagBox');
+  var log = [];
+  function write(msg){ log.push(msg); box.textContent = log.join('\n'); }
+  window.__diagLog = write;
+  write('Page HTML parsed OK.');
+  window.addEventListener('error', function(e){
+    write('❌ JS ERROR: ' + e.message + ' (line ' + e.lineno + ')');
+  });
+  window.addEventListener('unhandledrejection', function(e){
+    write('❌ PROMISE ERROR: ' + (e.reason && e.reason.message ? e.reason.message : e.reason));
+  });
+  window.__diagBox = box;
+})();
+</script>
+<div class="app" id="app">
+
+  <!-- ============ CONFIG-MISSING SCREEN ============ -->
+  <div id="setupScreen" class="setup-screen hidden">
+    <div class="auth-hero"><div class="mark">🔧</div><h2>Firebase config needed</h2></div>
+    <div class="info-box">
+      This app needs your Firebase project's config values pasted into the
+      <code>firebaseConfig</code> object near the top of the main &lt;script&gt; block
+      in this file. Open the file in a text editor, replace the placeholder values
+      (apiKey, authDomain, projectId, etc.) with the ones from your Firebase project
+      settings, save, and reopen this page.
+    </div>
+  </div>
+
+  <!-- ================= AUTH ================= -->
+  <div id="authScreen" class="auth-screen hidden">
+    <div class="auth-hero">
+      <div class="mark">📦</div>
+      <h1>Smart Stock &amp; Sales Manager</h1>
+      <p id="authSubtitle">Sign in to your warehouse workspace</p>
+    </div>
+    <div id="authError" class="error-box hidden"></div>
+
+    <div id="loginForm">
+      <div class="field"><label>Email</label><input type="email" id="loginEmail" placeholder="you@company.com"></div>
+      <div class="field"><label>Password</label><input type="password" id="loginPass" placeholder="••••••••"></div>
+      <button class="btn btn-primary btn-block" id="loginBtn">Sign in</button>
+      <div class="auth-switch" style="margin-top:14px;">No account yet? <a id="gotoSignup">Create one</a></div>
+    </div>
+
+    <div id="signupForm" class="hidden">
+      <div class="info-box">New accounts start as <b>Staff</b>. The very first person to sign up should
+      open the Firebase Console → Firestore → <code>users</code> collection → their own document,
+      and change <code>role</code> to <code>admin</code> manually — that becomes the first Admin.
+      After that, an Admin can promote other staff from the Users tab inside the app.</div>
+      <div class="field"><label>Email</label><input type="email" id="suEmail" placeholder="you@company.com"></div>
+      <div class="field"><label>Password</label><input type="password" id="suPass" placeholder="At least 6 characters"></div>
+      <button class="btn btn-primary btn-block" id="signupBtn">Create account</button>
+      <div class="auth-switch" style="margin-top:14px;">Already have an account? <a id="gotoLogin">Sign in</a></div>
+    </div>
+  </div>
+
+  <!-- ================= MAIN APP ================= -->
+  <div id="mainScreen" class="hidden" style="display:flex;flex-direction:column;flex:1;">
+    <header class="topbar">
+      <div class="brand">Stock<span>Manager</span></div>
+      <div class="who">
+        <div class="name" id="whoName">—<div class="role-badge" id="whoRole">—</div></div>
+        <button class="logout-btn" id="logoutBtn">Log out</button>
+      </div>
+    </header>
+    <div class="sync-row"><span class="sync-dot" id="syncDot"></span><span id="syncText">Live-synced via Firestore</span></div>
+
+    <nav class="tabbar">
+      <button data-tab="stock" class="active">Stock</button>
+      <button data-tab="txn">Sell / Return</button>
+      <button data-tab="history">History</button>
+      <button data-tab="dashboard" id="dashTabBtn">Dashboard</button>
+      <button data-tab="users" id="usersTabBtn">Users</button>
+    </nav>
+
+    <main>
+      <!-- STOCK TAB -->
+      <section id="tab-stock">
+        <div id="addProductBox">
+          <div class="section-title">Add product</div>
+          <div class="card">
+            <div class="field"><label>Product name</label><input type="text" id="newProdName" placeholder="e.g. Amistar Top"></div>
+            <div style="display:flex; gap:10px;">
+              <div class="field" style="flex:1;"><label>Quantity</label><input type="number" id="newProdQty" placeholder="0" min="0"></div>
+              <div class="field" style="flex:1;"><label>Unit</label>
+                <select id="newProdUnit"><option value="carton">Carton</option><option value="piece">Piece</option></select>
+              </div>
+            </div>
+            <div class="field"><label>Low stock alert below</label><input type="number" id="newProdThreshold" placeholder="5" min="0"></div>
+            <div style="display:flex; gap:10px;">
+              <div class="field" style="flex:1;"><label>Cost price / unit (buy)</label><input type="number" id="newProdCost" placeholder="0.00" min="0" step="0.01"></div>
+              <div class="field" style="flex:1;"><label>Sell price / unit</label><input type="number" id="newProdPrice" placeholder="0.00" min="0" step="0.01"></div>
+            </div>
+            <button class="btn btn-primary btn-block" id="addProdBtn">Add product</button>
+          </div>
+        </div>
+
+        <div id="inventoryValueBox">
+          <div class="section-title">Inventory value</div>
+          <div class="card value-card">
+            <div class="label">TOTAL STOCK VALUE</div>
+            <div class="amount mono" id="inventoryValueAmount">৳0.00</div>
+          </div>
+        </div>
+
+        <div class="section-title">Current stock</div>
+        <div class="card" id="stockList"></div>
+      </section>
+
+      <!-- EDIT PRODUCT MODAL -->
+      <div class="modal-overlay hidden" id="editProductModal">
+        <div class="modal-box">
+          <div class="modal-title">Edit product</div>
+          <div class="field"><label>Product name</label><input type="text" id="editProdName"></div>
+          <div style="display:flex; gap:10px;">
+            <div class="field" style="flex:1;"><label>Unit</label>
+              <select id="editProdUnit"><option value="carton">Carton</option><option value="piece">Piece</option></select>
+            </div>
+            <div class="field" style="flex:1;"><label>Low stock alert below</label><input type="number" id="editProdThreshold" min="0"></div>
+          </div>
+          <div style="display:flex; gap:10px;">
+            <div class="field" style="flex:1;"><label>Cost price / unit (buy)</label><input type="number" id="editProdCost" min="0" step="0.01" placeholder="0.00"></div>
+            <div class="field" style="flex:1;"><label>Sell price / unit</label><input type="number" id="editProdPrice" min="0" step="0.01" placeholder="0.00"></div>
+          </div>
+          <div style="display:flex; gap:10px;">
+            <button class="btn btn-outline btn-block" id="editProdCancelBtn">Cancel</button>
+            <button class="btn btn-primary btn-block" id="editProdSaveBtn">Save changes</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- TRANSACTION TAB -->
+      <section id="tab-txn" class="hidden">
+        <div class="mode-toggle">
+          <div class="mode-opt sell active" data-mode="sell">🔻 Sell</div>
+          <div class="mode-opt return" data-mode="return">🔺 Return</div>
+        </div>
+
+        <div id="manualEntrySection">
+          <div class="section-title">Add products to transaction</div>
+          <div class="card">
+            <div class="picker-row">
+              <select id="pickProduct"></select>
+              <input type="number" id="pickQty" placeholder="Qty" min="1" style="max-width:70px;">
+              <select id="pickUnit" style="max-width:90px;"><option value="carton">Carton</option><option value="piece">Piece</option></select>
+            </div>
+            <div class="field" id="pickPriceField"><label>Unit price</label><input type="number" id="pickPrice" min="0" step="0.01" placeholder="Enter price"></div>
+            <button class="btn btn-outline btn-block" id="addLineBtn">+ Add line item</button>
+          </div>
+
+          <div class="section-title">Line items</div>
+          <div id="lineItems"><div class="empty">No items added yet.</div></div>
+
+          <div id="orderTotalBox">
+            <div class="section-title">Order total</div>
+            <div class="card value-card">
+              <div class="label">TOTAL (SELL TIME)</div>
+              <div class="amount sm mono" id="orderTotalAmount">৳0.00</div>
+            </div>
+          </div>
+        </div>
+
+        <div id="returnSection" class="hidden">
+          <div class="section-title">Find sale by CN</div>
+          <div class="card">
+            <div class="field"><label>Consignment / CN Number *</label>
+              <div style="display:flex; gap:8px;">
+                <input type="text" id="returnCnInput" placeholder="e.g. CN-2026-00417" style="flex:1;">
+                <button class="btn btn-outline" id="findCnBtn">Find</button>
+              </div>
+            </div>
+            <div class="info-box">Enter the CN number of the original Sell, then choose which products and how many units to return. Partial returns are supported — return some now and the rest later.</div>
+          </div>
+
+          <div class="section-title">Items to return</div>
+          <div id="returnItemsList"><div class="empty">Search a CN number above first.</div></div>
+
+          <button class="btn btn-primary btn-block" id="submitReturnBtn" style="margin-top:6px;">Submit return</button>
+        </div>
+
+        <div id="sellSubmitCard">
+          <div class="section-title">CN number</div>
+          <div class="card">
+            <div class="field"><label>Consignment / CN Number *</label><input type="text" id="cnNumber" placeholder="e.g. CN-2026-00417"></div>
+            <button class="btn btn-primary btn-block" id="submitTxnBtn">Submit transaction</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- HISTORY TAB -->
+      <section id="tab-history" class="hidden">
+        <div class="section-title">Transaction history</div>
+        <div id="historyList"></div>
+      </section>
+
+      <!-- DASHBOARD TAB (admin only) -->
+      <section id="tab-dashboard" class="hidden">
+        <div class="section-title">Total profit</div>
+        <div class="card value-card">
+          <div class="label">ALL-TIME NET PROFIT</div>
+          <div class="amount mono" id="dashTotalProfit">৳0.00</div>
+          <div class="field-hint" id="dashTotalBreak" style="margin-top:6px;"></div>
+        </div>
+
+        <div class="section-title">Today</div>
+        <div class="dash-grid" id="dashTodayGrid"></div>
+
+        <div class="section-title">Daily report · last 14 days</div>
+        <div class="card">
+          <div class="bar-chart" id="dashBarChart"></div>
+          <div class="chart-cap">Bar height = net profit per day. Red = loss.</div>
+          <div id="dashDailyList" style="margin-top:12px;"></div>
+        </div>
+
+        <div class="section-title">Monthly summary</div>
+        <div class="card" id="dashMonthlyList"></div>
+      </section>
+
+      <!-- USERS TAB (admin only) -->
+      <section id="tab-users" class="hidden">
+        <div class="info-box">New teammates sign up themselves from the login screen (they start as
+        Staff). Promote or demote them here.</div>
+        <div class="section-title">All users</div>
+        <div class="card" id="usersList"></div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"
+  onload="window.__diagLog('✅ firebase-app-compat.js loaded')"
+  onerror="window.__diagLog('❌ FAILED to load firebase-app-compat.js — check internet connection')"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"
+  onload="window.__diagLog('✅ firebase-auth-compat.js loaded')"
+  onerror="window.__diagLog('❌ FAILED to load firebase-auth-compat.js — check internet connection')"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"
+  onload="window.__diagLog('✅ firebase-firestore-compat.js loaded')"
+  onerror="window.__diagLog('❌ FAILED to load firebase-firestore-compat.js — check internet connection')"></script>
+<script>
+/* =========================================================================
+   Smart Stock & Sales Manager — Firebase Firestore + Firebase Auth edition
+   (compat build — works even when this file is opened directly from disk,
+   e.g. via Chrome's "Open with" on a downloaded file, since it does not
+   rely on ES module imports which browsers block under the file:// origin)
+   -------------------------------------------------------------------------
+   1) Create a free project at https://console.firebase.google.com
+   2) Build > Authentication > Sign-in method > enable "Email/Password"
+   3) Build > Firestore Database > Create database (start in production mode)
+   4) Project settings (gear icon) > General > "Your apps" > Web app (</>)
+      copy the firebaseConfig object it gives you and paste it below.
+   5) Firestore > Rules tab, paste the ruleset from the message this file
+      was shared with, then Publish.
+   ========================================================================= */
+
+// ⬇️⬇️⬇️ PASTE YOUR FIREBASE PROJECT CONFIG HERE ⬇️⬇️⬇️
+const firebaseConfig = {
+  apiKey: "AIzaSyAOHFRH4Ukt5rITg0zB9awtrmutfptVvxo",
+  authDomain: "smart-stock-manager-5e32b.firebaseapp.com",
+  projectId: "smart-stock-manager-5e32b",
+  storageBucket: "smart-stock-manager-5e32b.firebasestorage.app",
+  messagingSenderId: "532604793507",
+  appId: "1:532604793507:web:c7cf1c5078b651102d0516"
+};
+// ⬆️⬆️⬆️ PASTE YOUR FIREBASE PROJECT CONFIG HERE ⬆️⬆️⬆️
+
+const CONFIG_IS_PLACEHOLDER = firebaseConfig.apiKey === "YOUR_API_KEY";
+
+let auth, db;
+try{
+  window.__diagLog('typeof firebase = ' + typeof firebase);
+  if(!CONFIG_IS_PLACEHOLDER){
+    firebase.initializeApp(firebaseConfig);
+    window.__diagLog('✅ firebase.initializeApp() OK');
+    auth = firebase.auth();
+    db = firebase.firestore();
+    window.__diagLog('✅ auth & db objects created');
+  } else {
+    window.__diagLog('⚠️ CONFIG_IS_PLACEHOLDER is true — showing setup screen');
+  }
+}catch(e){
+  window.__diagLog('❌ ERROR during Firebase init: ' + e.message);
+}
+
+let state = { products:{}, transactions:{}, users:{} };
+let session = null; // { uid, email, role }
+let unsubProducts=null, unsubTxns=null, unsubUsers=null;
+
+/* ---------------- utils ---------------- */
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function fmtTime(ts){
+  if(!ts) return '—';
+  const d = ts.toDate ? ts.toDate() : new Date(ts);
+  return d.toLocaleString(undefined, {day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+}
+function showToast(msg, isError){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (isError ? ' error' : '');
+  clearTimeout(showToast._h);
+  showToast._h = setTimeout(()=>{ t.className = 'toast'; }, 2800);
+}
+function isAdmin(){ return session && session.role === 'admin'; }
+// Only admins may ever see prices / money values. Staff see name + qty only.
+function canSeePrice(){ return isAdmin(); }
+
+/* ---- copy-to-clipboard (used by CN tags in history) ---- */
+function copyCn(cn){
+  if(!cn) return;
+  const done = ()=> showToast('✅ CN copied: ' + cn);
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(cn).then(done).catch(()=> fallbackCopy(cn, done));
+  } else {
+    fallbackCopy(cn, done);
+  }
+}
+function fallbackCopy(text, cb){
+  try{
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed'; ta.style.top = '-1000px'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.focus(); ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    cb && cb();
+  }catch(e){ showToast('Copy failed', true); }
+}
+window.copyCn = copyCn;
+function setSyncBadge(ok){
+  const dot = document.getElementById('syncDot');
+  const text = document.getElementById('syncText');
+  if(!dot) return;
+  dot.classList.toggle('offline', !ok);
+  text.textContent = ok ? 'Live-synced via Firestore' : 'Connection issue — retrying…';
+}
+
+/* ================= BOOT ================= */
+if(CONFIG_IS_PLACEHOLDER){
+  document.getElementById('setupScreen').classList.remove('hidden');
+  window.__diagLog('Showing setup screen.');
+} else {
+  (async function(){
+    try{
+      // Local file / content:// origins often can't use IndexedDB persistence,
+      // which makes onAuthStateChanged hang forever with no error. Force
+      // in-memory persistence instead so auth state resolves immediately.
+      await auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+      window.__diagLog('✅ auth persistence set to NONE (in-memory)');
+    }catch(e){
+      window.__diagLog('⚠️ setPersistence failed (continuing anyway): ' + e.message);
+    }
+    window.__diagLog('Waiting for onAuthStateChanged…');
+    auth.onAuthStateChanged(async (user)=>{
+      window.__diagLog('✅ onAuthStateChanged fired. user = ' + (user ? user.email : 'null'));
+      if(user){
+        await attachSession(user);
+      } else {
+        detachListeners();
+        session = null;
+        showAuth();
+      }
+      if(window.__diagBox) window.__diagBox.style.display = 'none';
+    }, function(err){
+      window.__diagLog('❌ onAuthStateChanged ERROR: ' + err.message);
+    });
+  })();
+  setTimeout(function(){
+    if(window.__diagBox && window.__diagBox.style.display !== 'none'){
+      window.__diagLog('⏱️ 6s passed and app still has not booted — see errors above, or none appeared (likely a network/CDN block).');
+    }
+  }, 6000);
+}
+
+async function attachSession(user){
+  try{
+    const snap = await db.collection('users').doc(user.uid).get();
+    const role = snap.exists ? snap.data().role : 'staff';
+    if(!snap.exists){
+      await db.collection('users').doc(user.uid).set({ email:user.email, role:'staff', createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+    }
+    session = { uid:user.uid, email:user.email, role };
+    enterApp();
+  }catch(e){
+    showToast('Could not load your profile: ' + e.message, true);
+  }
+}
+
+/* ================= AUTH SCREEN ================= */
+function showAuth(){
+  document.getElementById('authScreen').classList.remove('hidden');
+  document.getElementById('mainScreen').classList.add('hidden');
+  switchAuthForm('login');
+}
+function switchAuthForm(which){
+  document.getElementById('loginForm').classList.toggle('hidden', which!=='login');
+  document.getElementById('signupForm').classList.toggle('hidden', which!=='signup');
+  document.getElementById('authError').classList.add('hidden');
+}
+document.getElementById('gotoSignup').addEventListener('click', ()=>switchAuthForm('signup'));
+document.getElementById('gotoLogin').addEventListener('click', ()=>switchAuthForm('login'));
+
+function authErr(msg){
+  const e = document.getElementById('authError');
+  e.textContent = msg;
+  e.classList.remove('hidden');
+}
+
+document.getElementById('loginBtn').addEventListener('click', async ()=>{
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass = document.getElementById('loginPass').value;
+  if(!email || !pass){ authErr('Enter email and password.'); return; }
+  try{
+    await auth.signInWithEmailAndPassword(email, pass);
+  }catch(e){ authErr(friendlyAuthError(e)); }
+});
+
+document.getElementById('signupBtn').addEventListener('click', async ()=>{
+  const email = document.getElementById('suEmail').value.trim();
+  const pass = document.getElementById('suPass').value;
+  if(!email || !pass){ authErr('Enter email and password.'); return; }
+  if(pass.length < 6){ authErr('Password must be at least 6 characters.'); return; }
+  try{
+    const cred = await auth.createUserWithEmailAndPassword(email, pass);
+    await db.collection('users').doc(cred.user.uid).set({ email, role:'staff', createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+    showToast('Account created as Staff');
+  }catch(e){ authErr(friendlyAuthError(e)); }
+});
+
+function friendlyAuthError(e){
+  const code = e.code || '';
+  if(code.includes('email-already-in-use')) return 'That email already has an account. Try signing in.';
+  if(code.includes('invalid-email')) return 'Enter a valid email address.';
+  if(code.includes('wrong-password') || code.includes('invalid-credential')) return 'Incorrect email or password.';
+  if(code.includes('user-not-found')) return 'No account with that email.';
+  if(code.includes('weak-password')) return 'Password must be at least 6 characters.';
+  return e.message || 'Something went wrong.';
+}
+
+document.getElementById('logoutBtn').addEventListener('click', ()=>{ auth.signOut(); });
+
+/* ================= TABS ================= */
+document.querySelectorAll('.tabbar button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    if(btn.id === 'usersTabBtn' && !isAdmin()) return;
+    if(btn.id === 'dashTabBtn' && !isAdmin()) return;
+    document.querySelectorAll('.tabbar button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    ['stock','txn','history','dashboard','users'].forEach(t=>{
+      document.getElementById('tab-'+t).classList.toggle('hidden', t !== btn.dataset.tab);
+    });
+    if(btn.dataset.tab === 'txn') renderProductPicker();
+    if(btn.dataset.tab === 'dashboard') renderDashboard();
+  });
+});
+
+/* ================= ENTER APP ================= */
+function enterApp(){
+  document.getElementById('setupScreen').classList.add('hidden');
+  document.getElementById('authScreen').classList.add('hidden');
+  document.getElementById('mainScreen').classList.remove('hidden');
+  document.getElementById('whoName').childNodes[0].textContent = session.email;
+  document.getElementById('whoRole').textContent = session.role;
+  document.getElementById('usersTabBtn').style.display = isAdmin() ? '' : 'none';
+  document.getElementById('dashTabBtn').style.display = isAdmin() ? '' : 'none';
+  document.getElementById('addProductBox').style.display = isAdmin() ? '' : 'none';
+  // Staff must never see prices/values — hide every price-bearing element.
+  const showPrice = canSeePrice();
+  document.getElementById('inventoryValueBox').style.display = showPrice ? '' : 'none';
+  document.getElementById('pickPriceField').style.display = showPrice ? '' : 'none';
+  document.getElementById('orderTotalBox').style.display = showPrice ? '' : 'none';
+  attachListeners();
+}
+
+function detachListeners(){
+  if(unsubProducts) unsubProducts();
+  if(unsubTxns) unsubTxns();
+  if(unsubUsers) unsubUsers();
+  unsubProducts = unsubTxns = unsubUsers = null;
+}
+
+function attachListeners(){
+  detachListeners();
+  unsubProducts = db.collection('products').onSnapshot(snap=>{
+    state.products = {};
+    snap.forEach(d=> state.products[d.id] = d.data());
+    renderStock(); renderProductPicker();
+    if(isAdmin()) renderDashboard();
+    setSyncBadge(true);
+  }, err=>{ setSyncBadge(false); showToast('Sync error: ' + err.message, true); });
+
+  unsubTxns = db.collection('transactions').orderBy('createdAt','desc').onSnapshot(snap=>{
+    state.transactions = {};
+    snap.forEach(d=> state.transactions[d.id] = d.data());
+    renderHistory();
+    if(isAdmin()) renderDashboard();
+  }, err=>{ setSyncBadge(false); });
+
+  if(isAdmin()){
+    unsubUsers = db.collection('users').onSnapshot(snap=>{
+      state.users = {};
+      snap.forEach(d=> state.users[d.id] = d.data());
+      renderUsers();
+    });
+  }
+}
+
+/* ================= STOCK TAB ================= */
+function lowThreshold(p){ return (p.threshold === undefined || p.threshold === null || p.threshold === '') ? 5 : p.threshold; }
+
+function computeInventoryValue(){
+  return Object.values(state.products).reduce((sum,p)=> sum + (p.qty * (p.price || 0)), 0);
+}
+
+function renderStock(){
+  const el = document.getElementById('stockList');
+  const valueEl = document.getElementById('inventoryValueAmount');
+  if(valueEl) valueEl.textContent = '৳' + computeInventoryValue().toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+  const ids = Object.keys(state.products).sort((a,b)=> state.products[a].name.localeCompare(state.products[b].name));
+  if(ids.length === 0){ el.innerHTML = '<div class="empty">No products yet. Add your first product above.</div>'; return; }
+  el.innerHTML = ids.map(id=>{
+    const p = state.products[id];
+    const low = p.qty <= lowThreshold(p);
+    const priceText = (canSeePrice() && p.price) ? ` · ৳${p.price}/unit` : '';
+    const adminControls = isAdmin() ? `
+      <button class="icon-btn" onclick="openEditProduct('${id}')" title="Edit">✎</button>
+      <button class="icon-btn" onclick="adjustStock('${id}',1)">+</button>
+      <button class="icon-btn" onclick="adjustStock('${id}',-1)">−</button>
+      <button class="icon-btn danger" onclick="deleteProduct('${id}')">✕</button>` : '';
+    return `<div class="stock-row">
+      <div>
+        <div class="stock-name">${escapeHtml(p.name)}</div>
+        <div class="stock-meta">${escapeHtml(p.unit)}${priceText}${low?' · low stock':''}</div>
+      </div>
+      <div class="stock-right">
+        <div class="qty-pill ${low?'low':''}">${p.qty}</div>
+        ${adminControls}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+let editingProductId = null;
+function openEditProduct(id){
+  if(!isAdmin()){ showToast('Only admins can edit products.', true); return; }
+  const p = state.products[id];
+  if(!p) return;
+  editingProductId = id;
+  document.getElementById('editProdName').value = p.name;
+  document.getElementById('editProdUnit').value = p.unit;
+  document.getElementById('editProdThreshold').value = lowThreshold(p);
+  document.getElementById('editProdPrice').value = p.price || 0;
+  document.getElementById('editProdCost').value = p.cost || 0;
+  document.getElementById('editProductModal').classList.remove('hidden');
+}
+window.openEditProduct = openEditProduct;
+
+document.getElementById('editProdCancelBtn').addEventListener('click', ()=>{
+  document.getElementById('editProductModal').classList.add('hidden');
+  editingProductId = null;
+});
+
+document.getElementById('editProdSaveBtn').addEventListener('click', async ()=>{
+  if(!isAdmin()){ showToast('Only admins can edit products.', true); return; }
+  if(!editingProductId) return;
+  const name = document.getElementById('editProdName').value.trim();
+  const unit = document.getElementById('editProdUnit').value;
+  const thresholdRaw = document.getElementById('editProdThreshold').value;
+  const threshold = thresholdRaw === '' ? 5 : parseFloat(thresholdRaw);
+  const priceRaw = document.getElementById('editProdPrice').value;
+  const price = priceRaw === '' ? 0 : parseFloat(priceRaw);
+  const costRaw = document.getElementById('editProdCost').value;
+  const cost = costRaw === '' ? 0 : parseFloat(costRaw);
+  if(!name){ showToast('Enter a product name.', true); return; }
+  if(isNaN(threshold) || threshold < 0){ showToast('Enter a valid threshold.', true); return; }
+  if(isNaN(price) || price < 0){ showToast('Enter a valid sell price.', true); return; }
+  if(isNaN(cost) || cost < 0){ showToast('Enter a valid cost price.', true); return; }
+  try{
+    await db.collection('products').doc(editingProductId).update({ name, unit, threshold, price, cost });
+    showToast(`Updated ${name}`);
+    document.getElementById('editProductModal').classList.add('hidden');
+    editingProductId = null;
+  }catch(e){ showToast('Update failed: ' + e.message, true); }
+});
+
+document.getElementById('addProdBtn').addEventListener('click', async ()=>{
+  if(!isAdmin()){ showToast('Only admins can add products.', true); return; }
+  const name = document.getElementById('newProdName').value.trim();
+  const qty = parseFloat(document.getElementById('newProdQty').value || '0');
+  const unit = document.getElementById('newProdUnit').value;
+  const thresholdRaw = document.getElementById('newProdThreshold').value;
+  const threshold = thresholdRaw === '' ? 5 : parseFloat(thresholdRaw);
+  const priceRaw = document.getElementById('newProdPrice').value;
+  const price = priceRaw === '' ? 0 : parseFloat(priceRaw);
+  const costRaw = document.getElementById('newProdCost').value;
+  const cost = costRaw === '' ? 0 : parseFloat(costRaw);
+  if(!name){ showToast('Enter a product name.', true); return; }
+  if(isNaN(qty) || qty < 0){ showToast('Enter a valid quantity.', true); return; }
+  if(isNaN(price) || price < 0){ showToast('Enter a valid sell price.', true); return; }
+  if(isNaN(cost) || cost < 0){ showToast('Enter a valid cost price.', true); return; }
+  try{
+    await db.collection('products').add({ name, qty, unit, threshold, price, cost });
+    document.getElementById('newProdName').value='';
+    document.getElementById('newProdQty').value='';
+    document.getElementById('newProdThreshold').value='';
+    document.getElementById('newProdPrice').value='';
+    document.getElementById('newProdCost').value='';
+    showToast(`Added ${name}`);
+  }catch(e){ showToast('Could not add product: ' + e.message, true); }
+});
+
+async function adjustStock(id, delta){
+  if(!isAdmin()){ showToast('Only admins can edit stock.', true); return; }
+  const p = state.products[id];
+  if(!p) return;
+  const next = Math.max(0, p.qty + delta);
+  try{ await db.collection('products').doc(id).update({ qty: next }); }
+  catch(e){ showToast('Update failed: ' + e.message, true); }
+}
+window.adjustStock = adjustStock;
+
+async function deleteProduct(id){
+  if(!isAdmin()){ showToast('Only admins can delete products.', true); return; }
+  const p = state.products[id];
+  if(!p) return;
+  if(!confirm(`Delete "${p.name}"? This cannot be undone.`)) return;
+  try{ await db.collection('products').doc(id).delete(); showToast(`Deleted ${p.name}`); }
+  catch(e){ showToast('Delete failed: ' + e.message, true); }
+}
+window.deleteProduct = deleteProduct;
+
+/* ================= TRANSACTION TAB ================= */
+let txnMode = 'sell';
+let pendingLines = []; // { productId, name, qty, unit }
+
+document.querySelectorAll('.mode-opt').forEach(el=>{
+  el.addEventListener('click', ()=>{
+    document.querySelectorAll('.mode-opt').forEach(m=>m.classList.remove('active'));
+    el.classList.add('active');
+    txnMode = el.dataset.mode;
+    const isReturn = txnMode === 'return';
+    document.getElementById('manualEntrySection').classList.toggle('hidden', isReturn);
+    document.getElementById('returnSection').classList.toggle('hidden', !isReturn);
+    document.getElementById('sellSubmitCard').classList.toggle('hidden', isReturn);
+  });
+});
+
+function renderProductPicker(){
+  const sel = document.getElementById('pickProduct');
+  const ids = Object.keys(state.products).sort((a,b)=> state.products[a].name.localeCompare(state.products[b].name));
+  if(ids.length === 0){
+    sel.innerHTML = '<option value="">No products available</option>';
+    return;
+  }
+  const prev = sel.value;
+  sel.innerHTML = ids.map(id=> `<option value="${id}">${escapeHtml(state.products[id].name)}</option>`).join('');
+  if(ids.includes(prev)) sel.value = prev;
+  const cur = state.products[sel.value];
+  const priceInput = document.getElementById('pickPrice');
+  if(priceInput) priceInput.value = cur ? (cur.price || 0) : '';
+}
+document.getElementById('pickProduct') && document.getElementById('pickProduct').addEventListener('change', ()=>{
+  const p = state.products[document.getElementById('pickProduct').value];
+  document.getElementById('pickPrice').value = p ? (p.price || 0) : '';
+});
+
+document.getElementById('addLineBtn').addEventListener('click', ()=>{
+  const sel = document.getElementById('pickProduct');
+  const id = sel.value;
+  const qty = parseFloat(document.getElementById('pickQty').value);
+  const unit = document.getElementById('pickUnit').value;
+  if(!id){ showToast('Add a product to stock first.', true); return; }
+  if(isNaN(qty) || qty <= 0){ showToast('Enter a valid quantity.', true); return; }
+  const p = state.products[id];
+  // Staff never see or enter price — silently use the product's stored price
+  // so admin-side history/totals stay correct.
+  let price;
+  if(canSeePrice()){
+    const priceRaw = document.getElementById('pickPrice').value;
+    price = priceRaw === '' ? (p.price || 0) : parseFloat(priceRaw);
+    if(isNaN(price) || price < 0){ showToast('Enter a valid price.', true); return; }
+  } else {
+    price = p.price || 0;
+  }
+  const lineTotal = qty * price;
+  const cost = p.cost || 0;
+  pendingLines.push({ productId:id, name:p.name, qty, unit, price, cost, lineTotal });
+  document.getElementById('pickQty').value = '';
+  renderLineItems();
+});
+
+function renderLineItems(){
+  const el = document.getElementById('lineItems');
+  if(pendingLines.length === 0){
+    el.innerHTML = '<div class="empty">No items added yet.</div>';
+  } else {
+    el.innerHTML = pendingLines.map((li,i)=> `
+      <div class="line-item">
+        <div style="flex:1;">
+          <div class="li-name">${escapeHtml(li.name)} <span class="li-unit mono">× ${li.qty} ${escapeHtml(li.unit)}</span></div>
+          ${canSeePrice() ? `<div class="li-line-total mono">৳${li.price} × ${li.qty} = <b>৳${li.lineTotal.toFixed(2)}</b></div>` : ''}
+        </div>
+        <button class="icon-btn danger" onclick="removeLine(${i})">✕</button>
+      </div>`).join('');
+  }
+  const totalEl = document.getElementById('orderTotalAmount');
+  if(totalEl){
+    const total = pendingLines.reduce((s,li)=> s + li.lineTotal, 0);
+    totalEl.textContent = '৳' + total.toFixed(2);
+  }
+}
+function removeLine(i){ pendingLines.splice(i,1); renderLineItems(); }
+window.removeLine = removeLine;
+
+document.getElementById('submitTxnBtn').addEventListener('click', async ()=>{
+  const btn = document.getElementById('submitTxnBtn');
+  if(btn.dataset.busy === '1') return;               // guard against double-tap
+  const cn = document.getElementById('cnNumber').value.trim();
+  if(!cn){ showToast('CN number is required.', true); return; }
+  if(pendingLines.length === 0){ showToast('Add at least one line item.', true); return; }
+  const label = btn.textContent;
+  btn.dataset.busy = '1'; btn.disabled = true; btn.textContent = 'Processing…';
+  try{
+    const total = pendingLines.reduce((s,li)=> s + li.lineTotal, 0);
+    // Atomically bump stock for each product using Firestore's increment()
+    for(const li of pendingLines){
+      await db.collection('products').doc(li.productId).update({ qty: firebase.firestore.FieldValue.increment(-li.qty) });
+    }
+    await db.collection('transactions').add({
+      items: pendingLines.slice(),
+      cn, type: 'sell', status: 'pending', total,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(), createdBy: session.uid, createdByEmail: session.email
+    });
+    pendingLines = [];
+    document.getElementById('cnNumber').value = '';
+    renderLineItems();
+    showToast(`Transaction submitted — ${cn}`);
+  }catch(e){ showToast('Submit failed: ' + e.message, true); }
+  finally{ btn.dataset.busy = ''; btn.disabled = false; btn.textContent = label; }
+});
+
+/* -------- Partial return by CN -------- */
+let foundSaleTxn = null;   // { id, data }
+let returnRows = [];       // filtered candidate rows currently rendered
+
+document.getElementById('findCnBtn').addEventListener('click', ()=>{
+  const cn = document.getElementById('returnCnInput').value.trim();
+  if(!cn){ showToast('Enter a CN number to search.', true); return; }
+
+  const matchId = Object.keys(state.transactions).find(id=>{
+    const t = state.transactions[id];
+    return t.type === 'sell' && t.cn === cn && t.status !== 'cancelled';
+  });
+  if(!matchId){
+    showToast('No active Sell transaction found with this CN.', true);
+    foundSaleTxn = null; returnRows = [];
+    renderReturnItems();
+    return;
+  }
+  foundSaleTxn = { id: matchId, data: state.transactions[matchId] };
+
+  // Sum already-returned qty per product for this CN (ignore cancelled returns,
+  // so a cancelled return frees up that quantity to be returned again).
+  const returnedMap = {};
+  Object.values(state.transactions).forEach(t=>{
+    if(t.type === 'return' && t.returnOfCn === cn && t.status !== 'cancelled'){
+      t.items.forEach(li=>{ returnedMap[li.productId] = (returnedMap[li.productId] || 0) + li.qty; });
+    }
+  });
+
+  const candidates = foundSaleTxn.data.items.map(li=>{
+    const already = returnedMap[li.productId] || 0;
+    const remaining = Math.max(0, li.qty - already);
+    return { productId: li.productId, name: li.name, unit: li.unit, price: li.price || 0, cost: (li.cost != null ? li.cost : ((state.products[li.productId]||{}).cost || 0)), sold: li.qty, already, remaining };
+  });
+  returnRows = candidates.filter(c => c.remaining > 0);
+  renderReturnItems();
+});
+
+function renderReturnItems(){
+  const el = document.getElementById('returnItemsList');
+  if(!foundSaleTxn){ el.innerHTML = '<div class="empty">Search a CN number above first.</div>'; return; }
+  if(returnRows.length === 0){ el.innerHTML = '<div class="empty">Everything from this CN has already been returned.</div>'; return; }
+  el.innerHTML = returnRows.map((c,i)=> `
+    <div class="return-item-card" data-idx="${i}">
+      <label><input type="checkbox" class="return-check" data-idx="${i}"> ${escapeHtml(c.name)}</label>
+      <div class="field-hint">Sold ${c.sold} ${escapeHtml(c.unit)} · already returned ${c.already} · returnable ${c.remaining}</div>
+      <input type="number" class="return-qty" data-idx="${i}" min="0" max="${c.remaining}" placeholder="Qty to return (max ${c.remaining})" style="margin-top:8px;">
+    </div>`).join('');
+}
+
+// Ticking a product auto-fills its full returnable quantity (edit if you want
+// a partial amount). Un-ticking clears it. Makes one-tap returns easy.
+document.getElementById('returnItemsList').addEventListener('change', (e)=>{
+  const chk = e.target.closest('.return-check');
+  if(!chk) return;
+  const idx = chk.dataset.idx;
+  const row = returnRows[idx];
+  const qtyInput = document.querySelector(`.return-qty[data-idx="${idx}"]`);
+  const card = document.querySelector(`.return-item-card[data-idx="${idx}"]`);
+  if(card) card.classList.toggle('checked', chk.checked);
+  if(!qtyInput || !row) return;
+  if(chk.checked){
+    if(!qtyInput.value || parseFloat(qtyInput.value) <= 0){ qtyInput.value = row.remaining; }
+  } else {
+    qtyInput.value = '';
+  }
+});
+
+document.getElementById('submitReturnBtn').addEventListener('click', async ()=>{
+  const btn = document.getElementById('submitReturnBtn');
+  if(btn.dataset.busy === '1') return;                // guard against double-tap
+  if(!foundSaleTxn){ showToast('Find a CN first.', true); return; }
+  const selected = [];
+  document.querySelectorAll('.return-check').forEach(chk=>{
+    if(!chk.checked) return;
+    const idx = parseInt(chk.dataset.idx, 10);
+    const row = returnRows[idx];
+    const qtyInput = document.querySelector(`.return-qty[data-idx="${idx}"]`);
+    const qty = parseFloat(qtyInput.value);
+    if(isNaN(qty) || qty <= 0 || qty > row.remaining) return;
+    selected.push({ productId: row.productId, name: row.name, unit: row.unit, price: row.price, cost: row.cost || 0, qty, lineTotal: qty * row.price });
+  });
+  if(selected.length === 0){ showToast('Select at least one item with a valid quantity.', true); return; }
+  const label = btn.textContent;
+  btn.dataset.busy = '1'; btn.disabled = true; btn.textContent = 'Processing…';
+  try{
+    for(const li of selected){
+      await db.collection('products').doc(li.productId).update({ qty: firebase.firestore.FieldValue.increment(li.qty) });
+    }
+    const total = selected.reduce((s,li)=> s + li.lineTotal, 0);
+    await db.collection('transactions').add({
+      items: selected, cn: foundSaleTxn.data.cn, type: 'return', status: 'pending', returnOfCn: foundSaleTxn.data.cn, total,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(), createdBy: session.uid, createdByEmail: session.email
+    });
+    showToast(`Return recorded for CN ${foundSaleTxn.data.cn} — stock updated`);
+    document.getElementById('returnCnInput').value = '';
+    foundSaleTxn = null; returnRows = [];
+    renderReturnItems();
+  }catch(e){ showToast('Submit failed: ' + e.message, true); }
+  finally{ btn.dataset.busy = ''; btn.disabled = false; btn.textContent = label; }
+});
+
+/* ================= HISTORY TAB ================= */
+function renderHistory(){
+  const el = document.getElementById('historyList');
+  const ids = Object.keys(state.transactions);
+  if(ids.length === 0){ el.innerHTML = '<div class="empty">No transactions yet.</div>'; return; }
+  el.innerHTML = ids.map(id=>{
+    const t = state.transactions[id];
+    const itemsHtml = t.items.map(li=>{
+      const lt = li.lineTotal != null ? li.lineTotal : (li.qty * (li.price || 0));
+      const priceText = (canSeePrice() && li.price) ? ` · ৳${li.price} = ৳${lt.toFixed(2)}` : '';
+      return `<div>${escapeHtml(li.name)} — <b>${li.qty} ${escapeHtml(li.unit)}</b>${priceText}</div>`;
+    }).join('');
+    const totalHtml = (canSeePrice() && t.total != null) ? `<div class="field-hint" style="margin-top:4px;">Total: <b class="mono" style="color:var(--text);">৳${t.total.toFixed(2)}</b></div>` : '';
+    let actions = '';
+    if(t.status === 'pending' || t.status === 'requested'){
+      if(isAdmin()){
+        actions = `
+      <div class="txn-actions">
+        <button class="btn btn-primary btn-sm" onclick="deliverTxn('${id}')">🚚 Confirm delivery</button>
+        <button class="btn btn-danger-outline btn-sm" onclick="cancelTxn('${id}')">✕ Cancel</button>
+      </div>`;
+      } else if(t.status === 'pending'){
+        actions = `
+      <div class="txn-actions">
+        <button class="btn btn-outline btn-sm" onclick="requestDelivery('${id}')">✔ Confirm</button>
+      </div>`;
+      } else {
+        actions = `<div class="field-hint" style="margin-top:8px;">Delivery requested — waiting for admin confirmation.</div>`;
+      }
+    }
+    return `<div class="txn-card">
+      <div class="txn-top">
+        <span class="txn-type ${t.type}">${t.type === 'sell' ? 'Sell' : 'Return'}</span>
+        <span class="cn-tag" role="button" tabindex="0" title="Tap to copy CN" data-cn="${escapeHtml(t.cn)}">${escapeHtml(t.cn)}<span class="cn-copy-ic">⧉</span></span>
+      </div>
+      <div class="txn-items">${itemsHtml}</div>
+      ${totalHtml}
+      <div class="txn-foot">
+        <span class="txn-time">${fmtTime(t.createdAt)} · by ${escapeHtml(t.createdByEmail||'')}</span>
+        <span class="status-pill ${t.status}">${t.status}</span>
+      </div>
+      ${actions}
+    </div>`;
+  }).join('');
+}
+
+// Tap any CN in history to copy it to the clipboard.
+(function(){
+  const list = document.getElementById('historyList');
+  if(!list) return;
+  list.addEventListener('click', (e)=>{
+    const tag = e.target.closest('.cn-tag');
+    if(!tag) return;
+    copyCn(tag.dataset.cn || tag.textContent.trim());
+  });
+  list.addEventListener('keydown', (e)=>{
+    if(e.key !== 'Enter' && e.key !== ' ') return;
+    const tag = e.target.closest('.cn-tag');
+    if(!tag) return;
+    e.preventDefault();
+    copyCn(tag.dataset.cn || tag.textContent.trim());
+  });
+})();
+
+function getDisplayName(email){
+  if(!email) return 'there';
+  const namePart = email.split('@')[0].replace(/[._]+/g, ' ').trim();
+  if(!namePart) return 'there';
+  return namePart.replace(/\b\w/g, c => c.toUpperCase());
+}
+
+async function requestDelivery(id){
+  const t = state.transactions[id];
+  if(!t || t.status !== 'pending') return;
+  try{
+    await db.collection('transactions').doc(id).update({
+      status: 'requested', requestedAt: firebase.firestore.FieldValue.serverTimestamp(), requestedBy: session.email
+    });
+    showToast(`Thanks ${getDisplayName(session.email)}`);
+  }catch(e){ showToast('Failed: ' + e.message, true); }
+}
+window.requestDelivery = requestDelivery;
+
+async function deliverTxn(id){
+  if(!isAdmin()){ showToast('Only admins can confirm delivery.', true); return; }
+  const t = state.transactions[id];
+  if(!t || (t.status !== 'pending' && t.status !== 'requested')) return;
+  try{
+    await db.collection('transactions').doc(id).update({
+      status: 'delivered', deliveredAt: firebase.firestore.FieldValue.serverTimestamp(), deliveredBy: session.email
+    });
+    showToast(`Delivered — ${t.cn}`);
+  }catch(e){ showToast('Failed: ' + e.message, true); }
+}
+window.deliverTxn = deliverTxn;
+
+async function cancelTxn(id){
+  if(!isAdmin()){ showToast('Only admins can cancel transactions.', true); return; }
+  const t = state.transactions[id];
+  if(!t || (t.status !== 'pending' && t.status !== 'requested')) return;
+  if(!confirm('Cancel this transaction? Stock will be reverted.')) return;
+  try{
+    for(const li of t.items){
+      const delta = t.type === 'sell' ? li.qty : -li.qty;
+      await db.collection('products').doc(li.productId).update({ qty: firebase.firestore.FieldValue.increment(delta) });
+    }
+    await db.collection('transactions').doc(id).update({
+      status: 'cancelled', cancelledAt: firebase.firestore.FieldValue.serverTimestamp(), cancelledBy: session.email
+    });
+    showToast(`Cancelled — ${t.cn}, stock reverted`);
+  }catch(e){ showToast('Failed: ' + e.message, true); }
+}
+window.cancelTxn = cancelTxn;
+
+/* ================= DASHBOARD TAB (admin only) ================= */
+function txnDate(t){
+  const ts = t.createdAt;
+  if(!ts) return null;
+  return ts.toDate ? ts.toDate() : new Date(ts);
+}
+function dayKey(d){
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+function monthKey(d){
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+}
+function money(n){
+  const v = Math.abs(n).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+  return (n < 0 ? '−৳' : '৳') + v;
+}
+function moneyPlain(n){ return (n < 0 ? '-' : '') + '৳' + Math.abs(n).toFixed(2); }
+function fmtDay(d){ return d.toLocaleDateString(undefined,{weekday:'short',day:'2-digit',month:'short'}); }
+function monthLabel(key){
+  const parts = key.split('-');
+  const d = new Date(parseInt(parts[0],10), parseInt(parts[1],10)-1, 1);
+  return d.toLocaleDateString(undefined,{month:'long',year:'numeric'});
+}
+// Effective cost for a line: prefer the snapshot taken at sale time, else the
+// product's current cost, else 0. Keeps historical profit stable.
+function lineCost(li){
+  if(li.cost != null) return li.cost;
+  const p = state.products[li.productId];
+  return (p && p.cost != null) ? p.cost : 0;
+}
+
+// Aggregate revenue / cost / profit across all non-cancelled transactions.
+// Sells add; returns subtract (so a returned unit nets to zero profit).
+function computePL(){
+  const days = {}, months = {};
+  let totRev = 0, totCost = 0;
+  Object.values(state.transactions).forEach(t=>{
+    if(t.status === 'cancelled') return;
+    if(t.type !== 'sell' && t.type !== 'return') return;
+    const d = txnDate(t);
+    if(!d || !Array.isArray(t.items)) return;
+    const sign = t.type === 'sell' ? 1 : -1;
+    let rev = 0, cost = 0;
+    t.items.forEach(li=>{
+      const lt = li.lineTotal != null ? li.lineTotal : (li.qty * (li.price || 0));
+      rev += lt;
+      cost += li.qty * lineCost(li);
+    });
+    rev *= sign; cost *= sign;
+    totRev += rev; totCost += cost;
+    const dk = dayKey(d), mk = monthKey(d);
+    if(!days[dk]) days[dk] = { rev:0, cost:0, sells:0, returns:0 };
+    days[dk].rev += rev; days[dk].cost += cost;
+    if(sign > 0) days[dk].sells++; else days[dk].returns++;
+    if(!months[mk]) months[mk] = { rev:0, cost:0 };
+    months[mk].rev += rev; months[mk].cost += cost;
+  });
+  return { totRev, totCost, totProfit: totRev - totCost, days, months };
+}
+
+function renderDashboard(){
+  if(!session || !isAdmin()) return;
+  const chartEl = document.getElementById('dashBarChart');
+  if(!chartEl) return;
+  const pl = computePL();
+
+  // ---- total profit ----
+  const tp = document.getElementById('dashTotalProfit');
+  tp.textContent = money(pl.totProfit);
+  tp.style.color = pl.totProfit < 0 ? 'var(--sell)' : 'var(--accent)';
+  document.getElementById('dashTotalBreak').innerHTML =
+    `Revenue <b style="color:var(--text)">${money(pl.totRev)}</b> &nbsp;−&nbsp; Cost <b style="color:var(--text)">${money(pl.totCost)}</b>`;
+
+  // ---- today ----
+  const td = pl.days[dayKey(new Date())] || { rev:0, cost:0, sells:0, returns:0 };
+  const tProfit = td.rev - td.cost;
+  document.getElementById('dashTodayGrid').innerHTML = `
+    <div class="dash-stat">
+      <div class="k">Profit today</div>
+      <div class="v ${tProfit < 0 ? 'neg' : 'pos'}">${money(tProfit)}</div>
+      <div class="sub">${td.sells} sale${td.sells===1?'':'s'}${td.returns?` · ${td.returns} return${td.returns===1?'':'s'}`:''}</div>
+    </div>
+    <div class="dash-stat">
+      <div class="k">Revenue today</div>
+      <div class="v">${money(td.rev)}</div>
+      <div class="sub">Cost ${money(td.cost)}</div>
+    </div>`;
+
+  // ---- last 14 days ----
+  const today = new Date(); today.setHours(0,0,0,0);
+  const dayList = [];
+  for(let i=13;i>=0;i--){
+    const d = new Date(today); d.setDate(today.getDate()-i);
+    const rec = pl.days[dayKey(d)] || { rev:0, cost:0, sells:0, returns:0 };
+    dayList.push({ date:d, rev:rec.rev, cost:rec.cost, profit:rec.rev-rec.cost, sells:rec.sells, returns:rec.returns });
+  }
+  const maxProfit = Math.max(1, ...dayList.map(x=> Math.max(0, x.profit)));
+  chartEl.innerHTML = dayList.map(x=>{
+    let cls = 'bar', h;
+    if(x.profit > 0){ h = Math.max(5, Math.round(x.profit / maxProfit * 100)); }
+    else if(x.profit < 0){ cls = 'bar neg'; h = 6; }
+    else { cls = 'bar zero'; h = 2; }
+    return `<div class="bar-col" title="${dayKey(x.date)} · ${moneyPlain(x.profit)}">
+      <div class="${cls}" style="height:${h}%;"></div>
+      <div class="bar-lbl">${x.date.getDate()}</div>
+    </div>`;
+  }).join('');
+
+  // ---- daily list (active days, most recent first) ----
+  const active = dayList.slice().reverse().filter(x=> x.sells || x.returns);
+  const dl = document.getElementById('dashDailyList');
+  dl.innerHTML = active.length === 0
+    ? '<div class="empty">No sales in the last 14 days.</div>'
+    : active.map(x=> `
+      <div class="dl-row">
+        <div>
+          <div class="dl-date">${fmtDay(x.date)}</div>
+          <div class="dl-meta">${x.sells} sale${x.sells===1?'':'s'}${x.returns?` · ${x.returns} return${x.returns===1?'':'s'}`:''} · rev ${money(x.rev)}</div>
+        </div>
+        <div class="dl-amt ${x.profit < 0 ? 'neg' : 'pos'}">${money(x.profit)}</div>
+      </div>`).join('');
+
+  // ---- monthly summary ----
+  const mKeys = Object.keys(pl.months).sort().reverse();
+  const ml = document.getElementById('dashMonthlyList');
+  ml.innerHTML = mKeys.length === 0
+    ? '<div class="empty">No data yet.</div>'
+    : mKeys.map(k=>{
+      const m = pl.months[k];
+      const profit = m.rev - m.cost;
+      return `<div class="mon-row">
+        <div>
+          <div class="mon-name">${monthLabel(k)}</div>
+          <div class="mon-sub">Revenue ${money(m.rev)} · Cost ${money(m.cost)}</div>
+        </div>
+        <div class="mon-profit ${profit < 0 ? 'neg' : 'pos'}">${money(profit)}</div>
+      </div>`;
+    }).join('');
+}
+
+/* ================= USERS TAB (admin only) ================= */
+function renderUsers(){
+  if(!isAdmin()) return;
+  const el = document.getElementById('usersList');
+  const keys = Object.keys(state.users).sort((a,b)=> (state.users[a].email||'').localeCompare(state.users[b].email||''));
+  if(keys.length === 0){ el.innerHTML = '<div class="empty">No users.</div>'; return; }
+  el.innerHTML = keys.map(uid=>{
+    const u = state.users[uid];
+    const isSelf = uid === session.uid;
+    return `<div class="user-row">
+      <div class="user-email">${escapeHtml(u.email)}${isSelf ? ' (you)' : ''}</div>
+      <select ${isSelf ? 'disabled' : ''} onchange="changeRole('${uid}', this.value)">
+        <option value="staff" ${u.role==='staff'?'selected':''}>Staff</option>
+        <option value="admin" ${u.role==='admin'?'selected':''}>Admin</option>
+      </select>
+    </div>`;
+  }).join('');
+}
+
+async function changeRole(uid, role){
+  try{
+    await db.collection('users').doc(uid).update({ role });
+    showToast('Role updated');
+  }catch(e){ showToast('Failed: ' + e.message, true); renderUsers(); }
+}
+window.changeRole = changeRole;
+</script>
+</body>
+</html>
